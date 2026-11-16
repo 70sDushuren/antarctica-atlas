@@ -1,0 +1,62 @@
+{
+  "brand": {
+    "title": "Antarctica Atlas",
+    "subtitle": "南極洲實時天氣、冰下地質同人文歷史數碼地圖集",
+    "treatyBadge": "南緯 60° 以南 · 《南極條約》和平同科研保護區"
+  },
+  "nav": {
+    "weather": "實時天氣同海冰",
+    "geology": "揭開冰蓋睇地質",
+    "stations": "地理分區同科考站",
+    "heritage": "探險歷史同古蹟",
+    "corridors": "極地航線簡報",
+    "mode3d": "3D 立體南極地球",
+    "mode2d": "2D EPSG:3031 平面科學圖",
+    "unitsMetric": "公制單位 (°C, km/h, m)",
+    "unitsNautical": "航海單位 (°C, kt, m)",
+    "unitsImperial": "英制單位 (°F, kt, ft)",
+    "themeDark": "極夜深藍模式",
+    "themeLight": "極晝冰白模式"
+  },
+  "telemetry": {
+    "liveStatus": "雲端實時快取數據 · 每半個鐘更新一次",
+    "airTemp": "而家 2米氣溫",
+    "windChill": "吹風體感凍度",
+    "katabaticGust": "10米下降風陣風",
+    "pressure": "地面氣壓數值",
+    "solarRegime": "而家日照情況",
+    "polarDay": "廿四小時極晝（日不落午夜太陽）",
+    "polarNight": "廿四小時極夜",
+    "daylightHours": "每日有 {hours} 個鐘頭日照",
+    "drakeIndex": "德雷克海峽風浪指數",
+    "waveHeight": "大浪有效高度",
+    "wavePeriod": "湧浪相隔週期",
+    "seaIceExtent": "成個南極海冰面積"
+  },
+  "geology": {
+    "icePeelTitle": "Bedmap3 揭開冰蓋透視滑尺",
+    "icePeelHint": "拉動呢條滑尺就可以逐層揭開成四千七百米厚嘅冰蓋，直接睇清楚底下嘅山脈、深海溝同埋冰下湖。",
+    "surfaceElev": "冰面而家高度",
+    "iceThickness": "冰層有幾厚",
+    "bedElev": "底層基岩高度",
+    "marineBedWarning": "呢度個冰底低過海平面，屬於海洋性冰蓋敏感帶"
+  },
+  "corridor": {
+    "pinnedLabel": "預設揀定嘅經典南極探險航線",
+    "selectRoute": "轉去睇另一條探險航線",
+    "waypointsCount": "一共 {count} 個主要航點",
+    "safetyNotice": "落岸探險同埋行船資料全部跟足 IAATO 訪客指引同埋《南極條約》環保規矩。"
+  },
+  "status": {
+    "loading": "正喺度對齊緊 EPSG:3031 南極地圖座標同埋實時風浪數據……",
+    "errorTitle": "實時天氣數據暫時連唔上",
+    "errorRetry": "撳呢度再試一次",
+    "notFoundTitle": "呢個座標過咗南極地圖範圍搵唔到",
+    "notFoundHint": "搵唔到你想睇嘅航線或者版面，不如返去主地圖慢慢睇啦。",
+    "backToAtlas": "返去南極數碼地圖集首頁"
+  },
+  "footer": {
+    "sourcesTitle": "官方科研數據來源同埋極地地圖基準",
+    "scaffoldReady": "Phase 0 底層基建已經搞掂 —— 2D/3D 鏡頭同步、六種語言自動校驗、雲端天氣快取同埋南極數據包全部齊晒"
+  }
+}

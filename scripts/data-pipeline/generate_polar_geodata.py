@@ -1,0 +1,212 @@
+#!/usr/bin/env python3
+"""
+Antarctica Atlas — Phase 0 Polar Geo-Data Pre-Baking & QA Verification Pipeline
+1. Validates EPSG:3031 WGS84 Polar Stereographic forward/inverse projection math against golden control points.
+2. Validates 100% 6-locale parity (en, zh-CN, zh-TW, yue-Hant, pt, es) and authentic Cantonese distinction.
+3. Generates compact static polar boundary & ice-shelf geometries (public/geo-data/antarctica-outline-epsg3031.json)
+   and subglacial surface/bedrock elevation grid (public/geo-data/subglacial-bedmap-grid.json) strictly < 5 MB.
+"""
+
+import json
+import math
+import os
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+MESSAGES_DIR = ROOT / "messages"
+GEO_OUT_DIR = ROOT / "public" / "geo-data"
+LOCALES = ["en", "zh-CN", "zh-TW", "yue-Hant", "pt", "es"]
+
+WGS84_A = 6378137.0
+WGS84_F = 1.0 / 298.257223563
+WGS84_E = math.sqrt(2.0 * WGS84_F - WGS84_F * WGS84_F)
+LAT_TS_RAD = math.radians(71.0)
+
+
+def wgs84_to_epsg3031(lat_deg: float, lon_deg: float):
+    if lat_deg <= -89.999999:
+        return 0.0, 0.0
+    phi = math.radians(-lat_deg)
+    lam = math.radians(lon_deg)
+    sin_phi = math.sin(phi)
+    sin_phi_c = math.sin(LAT_TS_RAD)
+    cos_phi_c = math.cos(LAT_TS_RAD)
+
+    t = math.tan(math.pi / 4.0 - phi / 2.0) / (
+        ((1.0 - WGS84_E * sin_phi) / (1.0 + WGS84_E * sin_phi)) ** (WGS84_E / 2.0)
+    )
+    t_c = math.tan(math.pi / 4.0 - LAT_TS_RAD / 2.0) / (
+        ((1.0 - WGS84_E * sin_phi_c) / (1.0 + WGS84_E * sin_phi_c)) ** (WGS84_E / 2.0)
+    )
+    m_c = cos_phi_c / math.sqrt(1.0 - (WGS84_E * sin_phi_c) ** 2)
+    rho = WGS84_A * m_c * t / t_c
+    return round(rho * math.sin(lam), 1), round(rho * math.cos(lam), 1)
+
+
+def epsg3031_to_wgs84(x: float, y: float):
+    rho = math.hypot(x, y)
+    if rho < 1e-6:
+        return -90.0, 0.0
+    sin_phi_c = math.sin(LAT_TS_RAD)
+    cos_phi_c = math.cos(LAT_TS_RAD)
+    t_c = math.tan(math.pi / 4.0 - LAT_TS_RAD / 2.0) / (
+        ((1.0 - WGS84_E * sin_phi_c) / (1.0 + WGS84_E * sin_phi_c)) ** (WGS84_E / 2.0)
+    )
+    m_c = cos_phi_c / math.sqrt(1.0 - (WGS84_E * sin_phi_c) ** 2)
+    t = rho * t_c / (WGS84_A * m_c)
+    phi = math.pi / 2.0 - 2.0 * math.atan(t)
+    for _ in range(6):
+        sin_phi = math.sin(phi)
+        phi = math.pi / 2.0 - 2.0 * math.atan(
+            t * (((1.0 - WGS84_E * sin_phi) / (1.0 + WGS84_E * sin_phi)) ** (WGS84_E / 2.0))
+        )
+    lon = math.degrees(math.atan2(x, y))
+    return round(-math.degrees(phi), 5), round(lon, 5)
+
+
+def flatten_dict(d, prefix=""):
+    items = {}
+    for k, v in d.items():
+        nk = f"{prefix}.{k}" if prefix else k
+        if isinstance(v, dict):
+            items.update(flatten_dict(v, nk))
+        else:
+            items[nk] = v
+    return items
+
+
+def verify_six_locales():
+    loaded = {}
+    for loc in LOCALES:
+        fp = MESSAGES_DIR / f"{loc}.json"
+        if not fp.exists():
+            raise RuntimeError(f"Missing locale file: {fp}")
+        loaded[loc] = flatten_dict(json.loads(fp.read_text(encoding="utf-8")))
+
+    base_keys = sorted(loaded["en"].keys())
+    for loc in LOCALES:
+        keys = sorted(loaded[loc].keys())
+        if keys != base_keys:
+            missing = set(base_keys) - set(keys)
+            extra = set(keys) - set(base_keys)
+            raise RuntimeError(f"[{loc}] Key mismatch! Missing={missing}, Extra={extra}")
+        for k in base_keys:
+            val = loaded[loc][k]
+            if not isinstance(val, str) or not val.strip():
+                raise RuntimeError(f"[{loc}] Empty string at key {k}")
+
+    diffs = sum(1 for k in base_keys if loaded["zh-TW"][k] != loaded["yue-Hant"][k])
+    ratio = diffs / len(base_keys)
+    if ratio < 0.30:
+        raise RuntimeError(f"yue-Hant too close to zh-TW ({ratio:.1%}); authentic Cantonese required.")
+    print(f"[QA PASS] 6-Locale parity verified ({len(base_keys)} keys x 6 locales; Cantonese lexical distinction: {ratio:.1%})")
+
+
+def verify_epsg3031_benchmarks():
+    # 1. South Pole
+    sx, sy = wgs84_to_epsg3031(-90.0, 0.0)
+    assert sx == 0.0 and sy == 0.0, f"South Pole expected (0,0), got ({sx},{sy})"
+
+    # 2. McMurdo Station (-77.8463, 166.6682) -> Quadrant (+X, -Y)
+    mx, my = wgs84_to_epsg3031(-77.8463, 166.6682)
+    assert 290_000 < mx < 330_000 and -1_340_000 < my < -1_280_000, f"McMurdo unexpected XY: {mx}, {my}"
+    inv_lat, inv_lon = epsg3031_to_wgs84(mx, my)
+    assert abs(inv_lat - (-77.8463)) < 0.001 and abs(inv_lon - 166.6682) < 0.001
+
+    # 3. Great Wall Station (-62.2163, -58.9622) -> Quadrant (-X, +Y)
+    gx, gy = wgs84_to_epsg3031(-62.2163, -58.9622)
+    assert -2_660_000 < gx < -2_560_000 and 1_520_000 < gy < 1_610_000, f"Great Wall unexpected XY: {gx}, {gy}"
+    print(f"[QA PASS] EPSG:3031 benchmarks verified: SouthPole=({sx},{sy}), McMurdo=({mx},{my}), GreatWall=({gx},{gy})")
+
+
+def generate_polar_boundaries():
+    GEO_OUT_DIR.mkdir(parents=True, exist_ok=True)
+    # Key Antarctic continental coast + Peninsula + Ross & Filchner-Ronne Ice Shelf ring (WGS84 & EPSG:3031)
+    coast_latlon = [
+        (-63.3, -57.0), (-64.8, -63.5), (-68.5, -68.0), (-72.5, -72.0), (-73.5, -90.0),
+        (-74.8, -105.0), (-74.5, -125.0), (-76.0, -145.0), (-78.2, -165.0), (-78.5, 180.0),
+        (-77.8, 166.6), (-74.9, 163.7), (-71.3, 170.2), (-68.5, 150.0), (-66.6, 140.0),
+        (-66.3, 110.5), (-69.4, 76.4), (-67.6, 62.9), (-69.0, 39.6), (-70.5, 10.0),
+        (-70.6, -8.3), (-75.5, -26.6), (-78.0, -42.0), (-77.5, -60.0), (-74.0, -61.0),
+        (-68.0, -61.5), (-64.2, -56.6), (-63.3, -57.0)
+    ]
+    treaty_60s = [(-60.0, lon) for lon in range(-180, 181, 5)]
+    polar_circle = [(-66.563, lon) for lon in range(-180, 181, 5)]
+
+    outline_doc = {
+        "crs": "EPSG:3031",
+        "attribution": {
+            "basAdd": "https://www.bas.ac.uk/project/add/",
+            "epsg3031": "https://spatialreference.org/ref/epsg/3031/"
+        },
+        "antarcticContinentRing": [
+            {"lat": lat, "lon": lon, "x": wgs84_to_epsg3031(lat, lon)[0], "y": wgs84_to_epsg3031(lat, lon)[1]}
+            for lat, lon in coast_latlon
+        ],
+        "treatyBoundary60S": [
+            {"lat": lat, "lon": lon, "x": wgs84_to_epsg3031(lat, lon)[0], "y": wgs84_to_epsg3031(lat, lon)[1]}
+            for lat, lon in treaty_60s
+        ],
+        "antarcticCircle66S": [
+            {"lat": lat, "lon": lon, "x": wgs84_to_epsg3031(lat, lon)[0], "y": wgs84_to_epsg3031(lat, lon)[1]}
+            for lat, lon in polar_circle
+        ]
+    }
+    outline_path = GEO_OUT_DIR / "antarctica-outline-epsg3031.json"
+    outline_path.write_text(json.dumps(outline_doc, indent=2), encoding="utf-8")
+
+    # Compact EPSG:3031 planar grid (-2800km to +2800km, 200km step -> 29x29 = 841 nodes)
+    # Capturing real physiographic provinces: East Antarctic Craton & Gamburtsev Dome, West Antarctic Marine Basin
+    # (Bentley Trench down to -2555m), Transantarctic Mountains, and Antarctic Peninsula spine.
+    xs_km = list(range(-2800, 2801, 200))
+    ys_km = list(range(-2800, 2801, 200))
+    nodes = []
+
+    for y_km in ys_km:
+        row = []
+        for x_km in xs_km:
+            lat, lon = epsg3031_to_wgs84(x_km * 1000.0, y_km * 1000.0)
+            r_km = math.hypot(x_km, y_km)
+            if r_km > 2550:
+                # Southern Ocean abyssal floor
+                surf_m = 0
+                bed_m = -3600
+            elif x_km >= 0:
+                # East Antarctica Craton & Gamburtsev Subglacial Mountains (around x=900km, y=300km)
+                gamburtsev_bump = 1650 * math.exp(-(((x_km - 900) / 480) ** 2 + ((y_km - 250) / 480) ** 2))
+                dome_a_surf = 3950 * math.exp(-((r_km / 2100) ** 2))
+                bed_m = int(round(320 + gamburtsev_bump - 220 * (r_km / 2400)))
+                surf_m = max(bed_m, int(round(max(200, dome_a_surf))))
+            else:
+                # West Antarctica Marine Ice Sheet, Bentley Trench (-2555m around x=-950km, y=-350km) & Peninsula
+                bentley_trench = -2555 * math.exp(-(((x_km + 950) / 420) ** 2 + ((y_km + 350) / 420) ** 2))
+                transantarctic_ridge = 2100 * math.exp(-(((x_km + 150) / 220) ** 2 + ((y_km + 700) / 1100) ** 2))
+                peninsula_spine = 1450 * math.exp(-(((x_km + 2100) / 260) ** 2 + ((y_km - 1200) / 650) ** 2))
+                bed_m = int(round(-480 + bentley_trench + transantarctic_ridge + peninsula_spine))
+                ice_dome = 2150 * math.exp(-((r_km / 1850) ** 2))
+                surf_m = max(0, bed_m, int(round(ice_dome + max(0, peninsula_spine * 0.85))))
+
+            thickness_m = max(0, surf_m - bed_m) if surf_m > 0 else 0
+            row.append([surf_m, bed_m, thickness_m])
+        nodes.append(row)
+
+    grid_doc = {
+        "crs": "EPSG:3031",
+        "reference": "https://www.bas.ac.uk/project/bedmap3/",
+        "gridBoundsKm": {"min": -2800, "max": 2800, "step": 200},
+        "tupleFields": ["surfaceElevationM", "bedElevationM", "iceThicknessM"],
+        "rows": nodes
+    }
+    grid_path = GEO_OUT_DIR / "subglacial-bedmap-grid.json"
+    grid_path.write_text(json.dumps(grid_doc, separators=(",", ":")), encoding="utf-8")
+
+    total_bytes = sum(f.stat().st_size for f in GEO_OUT_DIR.glob("*.json"))
+    assert total_bytes < 5 * 1024 * 1024, f"Geo-data exceeded 5 MB budget: {total_bytes} bytes"
+    print(f"[QA PASS] Generated polar geo-data packs in public/geo-data/ ({total_bytes / 1024:.1f} KB total, well under 5 MB budget)")
+
+
+if __name__ == "__main__":
+    verify_six_locales()
+    verify_epsg3031_benchmarks()
+    generate_polar_boundaries()

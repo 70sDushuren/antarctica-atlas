@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  --bg-abyss: #07111f;
+  --bg-panel: rgba(11, 25, 44, 0.78);
+  --border-cryo: rgba(56, 189, 248, 0.24);
+  --text-primary: #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent-glacial: #38bdf8;
+  --accent-aurora: #10b981;
+  --accent-katabatic: #f59e0b;
+}
+
+[data-theme="light"] {
+  --bg-abyss: #eef6fc;
+  --bg-panel: rgba(255, 255, 255, 0.86);
+  --border-cryo: rgba(2, 132, 199, 0.25);
+  --text-primary: #0f172a;
+  --text-muted: #475569;
+  --accent-glacial: #0284c7;
+  --accent-aurora: #059669;
+  --accent-katabatic: #d97706;
+}
+
+body {
+  background-color: var(--bg-abyss);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+    "PingFang HK", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+}
+
+.cryo-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-cryo);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}

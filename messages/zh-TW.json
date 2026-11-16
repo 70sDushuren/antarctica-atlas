@@ -1,0 +1,62 @@
+{
+  "brand": {
+    "title": "Antarctica Atlas",
+    "subtitle": "南極洲全息氣象、冰下地質與人文歷史數位地圖集",
+    "treatyBadge": "南緯 60° 以南 · 《南極條約》和平與科學考察區"
+  },
+  "nav": {
+    "weather": "即時氣象與海冰",
+    "geology": "冰下基岩地質",
+    "stations": "地理分區與科考站",
+    "heritage": "人文探險遺產",
+    "corridors": "極地考察走廊",
+    "mode3d": "3D 極地數位地球",
+    "mode2d": "2D EPSG:3031 科學全圖",
+    "unitsMetric": "公制 (°C, km/h, m)",
+    "unitsNautical": "航海制 (°C, kt, m)",
+    "unitsImperial": "英制 (°F, kt, ft)",
+    "themeDark": "極夜深藍",
+    "themeLight": "極晝冰白"
+  },
+  "telemetry": {
+    "liveStatus": "邊緣快取遙測 · 每 30 分鐘同步",
+    "airTemp": "2公尺氣溫",
+    "windChill": "極寒風寒體感",
+    "katabaticGust": "10公尺下降風陣風",
+    "pressure": "地面氣壓",
+    "solarRegime": "極地日照狀態",
+    "polarDay": "24小時極晝（午夜太陽）",
+    "polarNight": "24小時極夜",
+    "daylightHours": "每日日照時間 {hours} 小時",
+    "drakeIndex": "德雷克海峽風浪等級",
+    "waveHeight": "有效波高",
+    "wavePeriod": "湧浪週期",
+    "seaIceExtent": "環南極海冰總面積"
+  },
+  "geology": {
+    "icePeelTitle": "Bedmap3 冰蓋剝離透視滑桿",
+    "icePeelHint": "拖曳滑桿逐層剝離厚達 4,700 公尺的大陸冰蓋，清晰檢視冰下山脈、海溝與冰下湖泊。",
+    "surfaceElev": "冰面海拔高程",
+    "iceThickness": "大陸冰蓋厚度",
+    "bedElev": "冰下基岩高程",
+    "marineBedWarning": "位於海平面以下之海洋性冰蓋基底區域"
+  },
+  "corridor": {
+    "pinnedLabel": "預設置頂極地考察航線走廊",
+    "selectRoute": "切換經典考察航線",
+    "waypointsCount": "{count} 個關鍵航路節點",
+    "safetyNotice": "極地登陸與航行資訊遵循 IAATO 訪客準則與《南極條約》環境保護議定書。"
+  },
+  "status": {
+    "loading": "正在校準 EPSG:3031 南極極球面投影與即時遙測資料流……",
+    "errorTitle": "極地遙測資料同步暫時中斷",
+    "errorRetry": "重新嘗試同步",
+    "notFoundTitle": "目標座標超出已測繪極地扇區",
+    "notFoundHint": "無法找到您所請求的極地航路或頁面，請返回主地圖集繼續探索。",
+    "backToAtlas": "返回南極數位地圖集"
+  },
+  "footer": {
+    "sourcesTitle": "權威科學資料源與極地測繪基準溯源",
+    "scaffoldReady": "Phase 0 基礎架構完備 —— 雙模視角同步、六語國際化驗證、邊緣氣象快取與極地地理網格均已就緒"
+  }
+}

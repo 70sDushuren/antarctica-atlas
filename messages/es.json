@@ -1,0 +1,62 @@
+{
+  "brand": {
+    "title": "Antarctica Atlas",
+    "subtitle": "Atlas Digital de Meteorología, Geología Subglacial e Historia de la Antártida",
+    "treatyBadge": "Al Sur de 60°S · Zona de Paz y Ciencia del Tratado Antártico"
+  },
+  "nav": {
+    "weather": "Clima y Hielo Marino",
+    "geology": "Geología Subglacial",
+    "stations": "Geografía y Bases",
+    "heritage": "Historia y Patrimonio",
+    "corridors": "Rutas de Expedición",
+    "mode3d": "Globo Polar 3D",
+    "mode2d": "Mapa 2D EPSG:3031",
+    "unitsMetric": "Métrico (°C, km/h, m)",
+    "unitsNautical": "Náutico (°C, kt, m)",
+    "unitsImperial": "Imperial (°F, kt, ft)",
+    "themeDark": "Noche Polar",
+    "themeLight": "Luz Glacial"
+  },
+  "telemetry": {
+    "liveStatus": "Telemetría en Caché Edge · Sinc. 30 min",
+    "airTemp": "Temp. del Aire (2m)",
+    "windChill": "Sensación Térmica Polar",
+    "katabaticGust": "Ráfaga Catabática (10m)",
+    "pressure": "Presión Superficial",
+    "solarRegime": "Iluminación Solar",
+    "polarDay": "Día Polar de 24h (Sol de Medianoche)",
+    "polarNight": "Noche Polar de 24h",
+    "daylightHours": "{hours}h de Luz Diurna",
+    "drakeIndex": "Estado del Mar en el Pasaje de Drake",
+    "waveHeight": "Altura Significativa de Ola",
+    "wavePeriod": "Período de Marejada",
+    "seaIceExtent": "Extensión de Hielo Marino Antártico"
+  },
+  "geology": {
+    "icePeelTitle": "Control Bedmap3 de Capas del Manto de Hielo",
+    "icePeelHint": "Deslice para retirar hasta 4.700 m de hielo continental y descubrir cordilleras, fosas y lagos subglaciales.",
+    "surfaceElev": "Elevación de Superficie del Hielo",
+    "iceThickness": "Espesor del Manto de Hielo",
+    "bedElev": "Elevación del Lecho Rocoso",
+    "marineBedWarning": "Manto de hielo marino asentado bajo el nivel del mar"
+  },
+  "corridor": {
+    "pinnedLabel": "Corredor de Expedición Predeterminado",
+    "selectRoute": "Cambiar Corredor de Expedición",
+    "waypointsCount": "{count} Puntos Clave de Ruta",
+    "safetyNotice": "Las operaciones siguen las Guías para Visitantes de la IAATO y el Protocolo Ambiental del Tratado Antártico."
+  },
+  "status": {
+    "loading": "Calibrando proyección polar EPSG:3031 y telemetría en tiempo real…",
+    "errorTitle": "Sincronización de Telemetría Polar Interrumpida",
+    "errorRetry": "Reintentar Sincronización",
+    "notFoundTitle": "Coordenadas Fuera del Sector Cartografiado",
+    "notFoundHint": "No se encontró la ruta o página polar solicitada al sur de los 60°S.",
+    "backToAtlas": "Volver a Antarctica Atlas"
+  },
+  "footer": {
+    "sourcesTitle": "Fuentes Científicas Verificadas y Referencias Cartográficas",
+    "scaffoldReady": "Infraestructura Fase 0 Verificada — Sincronía 2D/3D, 6 Idiomas, Caché Edge y Datos Polares Listos"
+  }
+}

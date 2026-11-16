@@ -1,0 +1,62 @@
+{
+  "brand": {
+    "title": "Antarctica Atlas",
+    "subtitle": "Holistic Live Weather, Subglacial Geology & Exploration Heritage Digital Atlas",
+    "treatyBadge": "South of 60°S · Antarctic Treaty Peace & Science Zone"
+  },
+  "nav": {
+    "weather": "Weather & Sea Ice",
+    "geology": "Subglacial Geology",
+    "stations": "Geography & Stations",
+    "heritage": "Exploration Heritage",
+    "corridors": "Expedition Corridors",
+    "mode3d": "3D Polar Globe",
+    "mode2d": "2D EPSG:3031 Map",
+    "unitsMetric": "Metric (°C, km/h, m)",
+    "unitsNautical": "Nautical (°C, kt, m)",
+    "unitsImperial": "Imperial (°F, kt, ft)",
+    "themeDark": "Cryo Night",
+    "themeLight": "Glacial Light"
+  },
+  "telemetry": {
+    "liveStatus": "Edge-Cached Telemetry · 30m Sync",
+    "airTemp": "2m Air Temp",
+    "windChill": "Polar Wind Chill",
+    "katabaticGust": "10m Wind Gust",
+    "pressure": "Surface Pressure",
+    "solarRegime": "Solar Illumination",
+    "polarDay": "24h Polar Day (Midnight Sun)",
+    "polarNight": "24h Polar Night",
+    "daylightHours": "{hours}h Daylight Window",
+    "drakeIndex": "Drake Passage Sea-State",
+    "waveHeight": "Significant Wave Height",
+    "wavePeriod": "Swell Period",
+    "seaIceExtent": "Antarctic Sea Ice Extent"
+  },
+  "geology": {
+    "icePeelTitle": "Bedmap3 Ice-Sheet Peel Slider",
+    "icePeelHint": "Slide to strip up to 4,700 m of glacial ice and expose subglacial mountain ranges, trenches, and lakes.",
+    "surfaceElev": "Ice Surface Elevation",
+    "iceThickness": "Ice Sheet Thickness",
+    "bedElev": "Subglacial Bedrock Elevation",
+    "marineBedWarning": "Marine-based ice sheet grounded below sea level"
+  },
+  "corridor": {
+    "pinnedLabel": "Default Pinned Expedition Corridor",
+    "selectRoute": "Switch Expedition Corridor",
+    "waypointsCount": "{count} Key Waypoints",
+    "safetyNotice": "Field operations follow IAATO Visitor Guidelines and Antarctic Treaty environmental protocols."
+  },
+  "status": {
+    "loading": "Calibrating EPSG:3031 polar projection & telemetry feeds…",
+    "errorTitle": "Polar Telemetry Synchronization Interrupted",
+    "errorRetry": "Retry Synchronization",
+    "notFoundTitle": "Coordinates Outside Charted Sector",
+    "notFoundHint": "The requested polar route or page could not be located south of 60°S.",
+    "backToAtlas": "Return to Antarctica Atlas"
+  },
+  "footer": {
+    "sourcesTitle": "Verified Scientific Data & Cartographic Sources",
+    "scaffoldReady": "Phase 0 Infrastructure Verified — Dual-Mode State Sync, 6-Locale i18n, Edge Telemetry & Polar Geo-Data Ready"
+  }
+}

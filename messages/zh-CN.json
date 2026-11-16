@@ -1,0 +1,62 @@
+{
+  "brand": {
+    "title": "Antarctica Atlas",
+    "subtitle": "南极洲全息气象、冰下地质与人文历史数字地图集",
+    "treatyBadge": "南纬 60° 以南 · 《南极条约》和平与科学考察区"
+  },
+  "nav": {
+    "weather": "实时气象与海冰",
+    "geology": "冰下基岩地质",
+    "stations": "地理分区与科考站",
+    "heritage": "人文探险遗产",
+    "corridors": "极地考察走廊",
+    "mode3d": "3D 极地数字地球",
+    "mode2d": "2D EPSG:3031 科学全图",
+    "unitsMetric": "公制 (°C, km/h, m)",
+    "unitsNautical": "航海制 (°C, kt, m)",
+    "unitsImperial": "英制 (°F, kt, ft)",
+    "themeDark": "极夜深蓝",
+    "themeLight": "极昼冰白"
+  },
+  "telemetry": {
+    "liveStatus": "边缘缓存遥测 · 每 30 分钟同步",
+    "airTemp": "2米气温",
+    "windChill": "极寒风寒体感",
+    "katabaticGust": "10米下降风阵风",
+    "pressure": "地面气压",
+    "solarRegime": "极地日照状态",
+    "polarDay": "24小时极昼（午夜太阳）",
+    "polarNight": "24小时极夜",
+    "daylightHours": "每日日照窗口 {hours} 小时",
+    "drakeIndex": "德雷克海峡风浪等级",
+    "waveHeight": "有效波高",
+    "wavePeriod": "涌浪周期",
+    "seaIceExtent": "环南极海冰总面积"
+  },
+  "geology": {
+    "icePeelTitle": "Bedmap3 冰盖剥离透视滑块",
+    "icePeelHint": "拖动滑块逐层剥离厚达 4,700 米的大陆冰盖，直观透视冰下山脉、深邃海沟与冰下湖泊。",
+    "surfaceElev": "冰面海拔高程",
+    "iceThickness": "大陆冰盖厚度",
+    "bedElev": "冰下基岩高程",
+    "marineBedWarning": "海平面以下接地海洋性冰盖基底敏感区"
+  },
+  "corridor": {
+    "pinnedLabel": "默认置顶极地考察航线走廊",
+    "selectRoute": "切换经典考察航线",
+    "waypointsCount": "{count} 个核心航路节点",
+    "safetyNotice": "极地登陆与航行参考遵循 IAATO 访客准则与《南极条约》环境保护议定书。"
+  },
+  "status": {
+    "loading": "正在校准 EPSG:3031 南极极球面投影与实时遥测数据流……",
+    "errorTitle": "极地遥测数据同步暂时中断",
+    "errorRetry": "重新同步数据",
+    "notFoundTitle": "目标坐标超出已测绘极地扇区",
+    "notFoundHint": "未能找到您访问的极地航路或页面，请返回主地图集继续探索。",
+    "backToAtlas": "返回南极数字地图集"
+  },
+  "footer": {
+    "sourcesTitle": "权威科学数据源与极地测绘基准溯源",
+    "scaffoldReady": "Phase 0 基础设施完备 —— 双模视角同步、六语国际化校验、边缘气象缓存与极地地理网格全部就绪"
+  }
+}

@@ -1,0 +1,52 @@
+name: Antarctica Atlas CI & Polar QA
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  polar-quality-gate:
+    name: Polar Geo-Data, 6-Locale i18n, Typecheck & Next.js Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12 (Geo-Data & EPSG:3031 Pipeline)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node.js 22 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify EPSG:3031 Benchmarks & Pre-baked Polar Geo-Data (< 5 MB)
+        run: npm run prep:geodata
+
+      - name: Validate 6-Locale Parity, ICU Placeholders & Cantonese Fidelity
+        run: npm run validate:i18n
+
+      - name: Run TypeScript Strict Check
+        run: npm run typecheck
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Polar Geometry, Subglacial Transect & Telemetry Unit Tests
+        run: npm test
+
+      - name: Build Production Serverless App (Option A Baseline)
+        run: npm run build
