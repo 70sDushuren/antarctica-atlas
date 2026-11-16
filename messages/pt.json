@@ -18,6 +18,19 @@
     "themeDark": "Noite Polar",
     "themeLight": "Luz Glacial"
   },
+  "canvas": {
+    "layerBlueMarble": "GIBS Batimetria e Relevo",
+    "layerModis": "GIBS Satélite Cor Real",
+    "layerCryoVector": "Carta Vetorial EPSG:3031",
+    "solarOverlay": "Terminador Solar",
+    "focusSouthPole": "Polo Sul 90°S",
+    "focusPeninsula": "Drake e Península",
+    "focusRoss180": "Mar de Ross 180°",
+    "focusDomeA": "Planalto Domo A",
+    "dragHint3d": "Arraste para girar o Globo Sul 3D · Role para zoom · Clique nas estações ou monumentos HSM",
+    "dragHint2d": "Projeção Estereográfica Polar nativa EPSG:3031 · Sem distorção em 90°S nem falhas em ±180°",
+    "cursorCoords": "Cursor EPSG:3031"
+  },
   "telemetry": {
     "liveStatus": "Telemetria em Cache de Borda · Sinc. 30 min",
     "airTemp": "Temp. do Ar (2m)",
@@ -31,7 +44,27 @@
     "drakeIndex": "Estado do Mar na Passagem de Drake",
     "waveHeight": "Altura Significativa de Onda",
     "wavePeriod": "Período de Ondulação",
-    "seaIceExtent": "Extensão do Gelo Marinho Antártico"
+    "sst": "Temp. da Superfície do Mar (SST)",
+    "seaIceExtent": "Extensão do Gelo Marinho Antártico",
+    "forecast7dTitle": "Previsão de 7 Dias: Temperatura, Sensação Térmica e Rajadas Catabáticas",
+    "tempMax": "Máx. Diária",
+    "tempMin": "Mín. Diária",
+    "katabaticNominal": "Calmo / Moderado (< 35 kt)",
+    "katabaticWatch": "Alerta Catabático (35–55 kt)",
+    "katabaticSevere": "Nevasca Severa (> 55 kt)",
+    "drakeTier1": "Nível 1 · Lago Drake (< 2,0 m)",
+    "drakeTier2": "Nível 2 · Ondulação Suave (2,0–3,5 m)",
+    "drakeTier3": "Nível 3 · Balanço Clássico (3,5–5,5 m)",
+    "drakeTier4": "Nível 4 · Drake Shake Forte (5,5–8,0 m)",
+    "drakeTier5": "Nível 5 · Tempestade Extrema (≥ 8,0 m)",
+    "seaIceMedian": "Mediana 1981–2010",
+    "seaIceCurrent": "Extensão Atual",
+    "seaIceAnomaly": "Anomalia",
+    "millionKm2": "M km²",
+    "filterStations": "Filtrar 18 estações polares por nome ou país…",
+    "allRegions": "Todos os Setores Antárticos",
+    "fallbackBadge": "Instantâneo Base",
+    "liveApiBadge": "Open-Meteo ECMWF ao Vivo"
   },
   "geology": {
     "icePeelTitle": "Controle Bedmap3 de Remoção do Manto de Gelo",
@@ -57,6 +90,6 @@
   },
   "footer": {
     "sourcesTitle": "Fontes Científicas Verificadas e Referências Cartográficas",
-    "scaffoldReady": "Infraestrutura da Fase 0 Pronta — Sincronia 2D/3D, 6 Idiomas, Telemetria em Borda e Dados Polares Verificados"
+    "scaffoldReady": "Fase 1 Ativa — Globo 3D ⇄ Mapa 2D EPSG:3031, Previsão de 18 Estações, Passagem de Drake e Gelo Marinho NSIDC"
   }
 }

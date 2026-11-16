@@ -13,8 +13,8 @@
 
 [data-theme="light"] {
   --bg-abyss: #eef6fc;
-  --bg-panel: rgba(255, 255, 255, 0.86);
-  --border-cryo: rgba(2, 132, 199, 0.25);
+  --bg-panel: rgba(255, 255, 255, 0.88);
+  --border-cryo: rgba(2, 132, 199, 0.28);
   --text-primary: #0f172a;
   --text-muted: #475569;
   --accent-glacial: #0284c7;
@@ -36,4 +36,42 @@ body {
   border: 1px solid var(--border-cryo);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+}
+
+/* Cryo-Telemetry Leaflet EPSG:3031 Controls & Tooltips */
+.leaflet-container {
+  background: #061325 !important;
+  font-family: inherit;
+}
+
+.leaflet-bar {
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  border-radius: 0.75rem !important;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.45) !important;
+}
+
+.leaflet-bar a {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+  color: #7dd3fc !important;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2) !important;
+}
+
+.leaflet-bar a:hover {
+  background-color: rgba(14, 165, 233, 0.25) !important;
+  color: #ffffff !important;
+}
+
+.leaflet-tooltip {
+  background-color: rgba(7, 17, 31, 0.94) !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  border-radius: 0.6rem !important;
+  color: #e0f2fe !important;
+  font-size: 11px !important;
+  padding: 4px 8px !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45) !important;
+}
+
+.leaflet-tooltip-top::before {
+  border-top-color: rgba(56, 189, 248, 0.4) !important;
 }

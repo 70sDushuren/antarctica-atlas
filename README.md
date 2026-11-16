@@ -80,7 +80,7 @@ antarctica-atlas/
 ## Milestone Roadmap Status / 阶段里程碑进度
 
 - [x] **Phase 0 — Scaffold, 6-Locale `next-intl`, Polar Geo-Data & CI Infrastructure**: Completed & connected to [`70sDushuren/antarctica-atlas`](https://github.com/70sDushuren/antarctica-atlas)
-- [ ] **Phase 1 — Dual-Mode Polar Canvas (`3D Globe ⇄ 2D EPSG:3031`) & Live Weather/Marine HUD**
+- [x] **Phase 1 — Dual-Mode Polar Canvas (`3D Globe ⇄ 2D EPSG:3031`) & Live Weather/Marine/Sea-Ice HUD**: Interactive 3D Southern Globe + 2D `EPSG:3031` Leaflet/GIBS WMTS map, solar terminator, 18 COMNAP stations with 7-day ECharts forecast, 5-tier Drake Shake Index & NSIDC v4 sea-ice seasonal curve
 - [ ] **Phase 2 — Bedmap3 Ice-Peel Explorer & Interactive Subglacial Cross-Section Lab**
 - [ ] **Phase 3 — 4-Act Exploration Heritage Scrollytelling, Default Corridor Briefing & Full 6-Locale QA**
 

@@ -5,6 +5,7 @@ export type LocalizedText = Record<SupportedLocale, string>;
 export type MapViewMode = '3d' | '2d';
 export type UnitSystem = 'metric' | 'nautical' | 'imperial';
 export type ThemeMode = 'dark' | 'light';
+export type PolarBaseLayer = 'gibs-bluemarble' | 'gibs-modis' | 'cryo-vector';
 
 export type AntarcticRegionId =
   | 'antarctic-peninsula'
@@ -64,6 +65,15 @@ export interface ExpeditionCorridor {
   sourceUrl: string;
 }
 
+export interface DailyStationForecast {
+  date: string;
+  tempMaxC: number;
+  tempMinC: number;
+  windChillMinC: number;
+  gustMaxKmh: number;
+  snowfallCm: number;
+}
+
 export interface StationWeatherTelemetry {
   stationId: string;
   lat: number;
@@ -76,13 +86,14 @@ export interface StationWeatherTelemetry {
   surfacePressureHpa: number;
   snowfallCm: number;
   katabaticTier: 'nominal' | 'watch' | 'severe';
+  dailyForecast: DailyStationForecast[];
   updatedAtIso: string;
   isFallback: boolean;
 }
 
 export interface MarineCorridorTelemetry {
   pointId: string;
-  label: string;
+  label: LocalizedText;
   lat: number;
   lon: number;
   waveHeightM: number;
@@ -96,8 +107,17 @@ export interface MarineCorridorTelemetry {
     | 'CLASSIC_ROLL'
     | 'DRAKE_SHAKE'
     | 'EXTREME_TEMPEST';
+  dailyWaveMaxM: number[];
   updatedAtIso: string;
   isFallback: boolean;
+}
+
+export interface MonthlySeaIcePoint {
+  monthIndex: number; // 1..12
+  median1981To2010Mkm2: number;
+  p10Mkm2: number;
+  p90Mkm2: number;
+  currentYearMkm2: number;
 }
 
 export interface SeaIceSummaryPayload {
@@ -109,8 +129,9 @@ export interface SeaIceSummaryPayload {
     extentMillionKm2: number;
     climatologyMedian1981To2010MillionKm2: number;
     anomalyMillionKm2: number;
-    regionalNotes: string;
+    regionalNotes: LocalizedText;
   };
+  seasonalCycle: MonthlySeaIcePoint[];
 }
 
 export interface ProjectedVertex {
@@ -120,6 +141,11 @@ export interface ProjectedVertex {
   y: number;
 }
 
+export interface NamedPolygonRing {
+  id: string;
+  vertices: ProjectedVertex[];
+}
+
 export interface PolarOutlineDataPack {
   crs: 'EPSG:3031';
   attribution: {
@@ -127,6 +153,11 @@ export interface PolarOutlineDataPack {
     epsg3031: string;
   };
   antarcticContinentRing: ProjectedVertex[];
+  iceShelves: NamedPolygonRing[];
+  southernGateways: Array<{
+    id: string;
+    coords: Array<{ lat: number; lon: number }>;
+  }>;
   treatyBoundary60S: ProjectedVertex[];
   antarcticCircle66S: ProjectedVertex[];
 }

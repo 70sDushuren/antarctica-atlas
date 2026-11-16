@@ -8,6 +8,8 @@ import {
   classifyDrakeSeaState,
   classifyKatabaticTier,
   computePolarSolarState,
+  computeSolarAltitudeDeg,
+  computeSubsolarPoint,
   computeWindChillC,
   densifyGreatCircle,
   epsg3031ToWgs84,
@@ -141,6 +143,13 @@ describe('Polar Meteorology, Drake Sea-State & Locale Unit Formatting', () => {
     assert.equal(summer.daylightHours, 24);
     assert.equal(winter.regime, 'polar-night');
     assert.equal(winter.daylightHours, 0);
+
+    const subsolar = computeSubsolarPoint(new Date('2026-12-21T12:00:00Z'));
+    assert.ok(subsolar.declinationDeg < -22 && subsolar.declinationDeg >= -23.5);
+    assert.ok(Math.abs(subsolar.subsolarLonDeg) < 2);
+
+    const poleSunAlt = computeSolarAltitudeDeg(-90, 0, new Date('2026-12-21T12:00:00Z'));
+    assert.ok(poleSunAlt > 22 && poleSunAlt < 24);
   });
 
   it('formats localized decimals (comma in es/pt vs dot in en/zh) and converts nautical knots', () => {

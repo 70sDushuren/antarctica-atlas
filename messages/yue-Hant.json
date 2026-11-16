@@ -18,6 +18,19 @@
     "themeDark": "極夜深藍模式",
     "themeLight": "極晝冰白模式"
   },
+  "canvas": {
+    "layerBlueMarble": "GIBS 海底同冰原地形底圖",
+    "layerModis": "GIBS 實時極地真彩衛星圖",
+    "layerCryoVector": "EPSG:3031 純科學經緯網",
+    "solarOverlay": "實時日照同極夜分界線",
+    "focusSouthPole": "直飛 90°S 南極點",
+    "focusPeninsula": "德雷克同南極半島",
+    "focusRoss180": "羅斯海 180° 經線",
+    "focusDomeA": "冰穹 A 內陸最高點",
+    "dragHint3d": "撳住拉動就可以轉個 3D 南半球地球 · 用滑鼠滾輪放大縮小 · 直接撳地圖上面啲科考站或者古蹟點睇詳情",
+    "dragHint2d": "正宗 EPSG:3031 南極極球面投影 · 完全唔會有普通地圖喺 90°S 變形或者 180° 羅斯海爆線嘅問題",
+    "cursorCoords": "滑鼠指住嘅 EPSG:3031 座標"
+  },
   "telemetry": {
     "liveStatus": "雲端實時快取數據 · 每半個鐘更新一次",
     "airTemp": "而家 2米氣溫",
@@ -31,7 +44,27 @@
     "drakeIndex": "德雷克海峽風浪指數",
     "waveHeight": "大浪有效高度",
     "wavePeriod": "湧浪相隔週期",
-    "seaIceExtent": "成個南極海冰面積"
+    "sst": "海面水溫 (SST)",
+    "seaIceExtent": "成個南極海冰面積",
+    "forecast7dTitle": "未來七日最高最低溫、體感凍度同下降風陣風走勢",
+    "tempMax": "最高氣溫",
+    "tempMin": "最低氣溫",
+    "katabaticNominal": "風勢平穩 (< 35 kt)",
+    "katabaticWatch": "下降風起風警告 (35–55 kt)",
+    "katabaticSevere": "狂風暴雪停航級別 (> 55 kt)",
+    "drakeTier1": "第 1 級 · 德雷克鏡湖咁靜 (< 2.0 m)",
+    "drakeTier2": "第 2 級 · 普通微浪好定 (2.0–3.5 m)",
+    "drakeTier3": "第 3 級 · 正常西風帶搖擺 (3.5–5.5 m)",
+    "drakeTier4": "第 4 級 · 德雷克大風浪拋浪 (5.5–8.0 m)",
+    "drakeTier5": "第 5 級 · 狂風巨浪惡劣海況 (≥ 8.0 m)",
+    "seaIceMedian": "1981–2010 歷年中位數",
+    "seaIceCurrent": "今年海冰面積",
+    "seaIceAnomaly": "比往年差幾多",
+    "millionKm2": "百萬 km²",
+    "filterStations": "打字搵站名或者國家，篩選 18 個主力科考站…",
+    "allRegions": "睇晒成個南極所有分區",
+    "fallbackBadge": "離線後備數據",
+    "liveApiBadge": "實時連線 Open-Meteo"
   },
   "geology": {
     "icePeelTitle": "Bedmap3 揭開冰蓋透視滑尺",
@@ -57,6 +90,6 @@
   },
   "footer": {
     "sourcesTitle": "官方科研數據來源同埋極地地圖基準",
-    "scaffoldReady": "Phase 0 底層基建已經搞掂 —— 2D/3D 鏡頭同步、六種語言自動校驗、雲端天氣快取同埋南極數據包全部齊晒"
+    "scaffoldReady": "Phase 1 正式運作緊 —— 3D 立體地球 ⇄ 2D EPSG:3031 雙模地圖、18 個科考站七日預報、德雷克風浪計同埋海冰走勢圖已經全部開通"
   }
 }

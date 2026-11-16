@@ -303,6 +303,40 @@ export function classifyDrakeSeaState(waveHeightM: number): {
 }
 
 /**
+ * Computes the subsolar geographic coordinates (solar declination lat & UTC subsolar lon)
+ * and local solar altitude angle for real-time 3D/2D polar day/night terminator rendering.
+ */
+export function computeSubsolarPoint(date: Date = new Date()): {
+  declinationDeg: number;
+  subsolarLonDeg: number;
+} {
+  const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 0);
+  const dayOfYear = (date.getTime() - startOfYear) / 86400000;
+  const declinationDeg = -23.44 * Math.cos(((2 * Math.PI) / 365.24) * (dayOfYear + 10));
+  const utcHours =
+    date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600;
+  let subsolarLonDeg = (12 - utcHours) * 15;
+  if (subsolarLonDeg > 180) subsolarLonDeg -= 360;
+  if (subsolarLonDeg < -180) subsolarLonDeg += 360;
+  return { declinationDeg, subsolarLonDeg };
+}
+
+export function computeSolarAltitudeDeg(
+  latDeg: number,
+  lonDeg: number,
+  date: Date = new Date()
+): number {
+  const { declinationDeg, subsolarLonDeg } = computeSubsolarPoint(date);
+  const latRad = (latDeg * Math.PI) / 180;
+  const decRad = (declinationDeg * Math.PI) / 180;
+  const hourAngleRad = ((lonDeg - subsolarLonDeg) * Math.PI) / 180;
+  const sinAlt =
+    Math.sin(latRad) * Math.sin(decRad) +
+    Math.cos(latRad) * Math.cos(decRad) * Math.cos(hourAngleRad);
+  return (Math.asin(Math.max(-1, Math.min(1, sinAlt))) * 180) / Math.PI;
+}
+
+/**
  * Computes Antarctic solar regime (polar day, polar night, or exact daylight hours).
  */
 export function computePolarSolarState(

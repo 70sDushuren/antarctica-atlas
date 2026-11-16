@@ -18,6 +18,19 @@
     "themeDark": "极夜深蓝",
     "themeLight": "极昼冰白"
   },
+  "canvas": {
+    "layerBlueMarble": "GIBS 海底地形渲染",
+    "layerModis": "GIBS 极地真彩遥感",
+    "layerCryoVector": "EPSG:3031 科学经纬网",
+    "solarOverlay": "实时晨昏光照",
+    "focusSouthPole": "90°S 南极点",
+    "focusPeninsula": "德雷克与半岛",
+    "focusRoss180": "罗斯海 180°",
+    "focusDomeA": "冰穹 A 高原",
+    "dragHint3d": "按住拖拽旋转南半球三维地球 · 滚轮缩放 · 点击站点或历史遗迹信标联动详情",
+    "dragHint2d": "原生 EPSG:3031 南极极球面立体投影 · 彻底消除 90°S 奇点畸变与 ±180° 罗斯海撕裂线",
+    "cursorCoords": "光标 EPSG:3031"
+  },
   "telemetry": {
     "liveStatus": "边缘缓存遥测 · 每 30 分钟同步",
     "airTemp": "2米气温",
@@ -31,7 +44,27 @@
     "drakeIndex": "德雷克海峡风浪等级",
     "waveHeight": "有效波高",
     "wavePeriod": "涌浪周期",
-    "seaIceExtent": "环南极海冰总面积"
+    "sst": "海表温度 (SST)",
+    "seaIceExtent": "环南极海冰总面积",
+    "forecast7dTitle": "未来 7 天气温极值、风寒体感与下降风阵风预报",
+    "tempMax": "日最高温",
+    "tempMin": "日最低温",
+    "katabaticNominal": "平稳微风 (< 35 kt)",
+    "katabaticWatch": "下降风强风预警 (35–55 kt)",
+    "katabaticSevere": "飓风级暴风雪 (> 55 kt)",
+    "drakeTier1": "1级 · 德雷克平湖 (< 2.0 m)",
+    "drakeTier2": "2级 · 轻度南大洋涌浪 (2.0–3.5 m)",
+    "drakeTier3": "3级 · 经典西风带横摇 (3.5–5.5 m)",
+    "drakeTier4": "4级 · 德雷克剧烈颠簸 (5.5–8.0 m)",
+    "drakeTier5": "5级 · 极端气旋狂浪 (≥ 8.0 m)",
+    "seaIceMedian": "1981–2010 气候中位数",
+    "seaIceCurrent": "本年度海冰范围",
+    "seaIceAnomaly": "气候距平",
+    "millionKm2": "百万 km²",
+    "filterStations": "按站名或国家检索 18 座核心科考站…",
+    "allRegions": "全部南极地理扇区",
+    "fallbackBadge": "离线基准快照",
+    "liveApiBadge": "实时 Open-Meteo ECMWF"
   },
   "geology": {
     "icePeelTitle": "Bedmap3 冰盖剥离透视滑块",
@@ -57,6 +90,6 @@
   },
   "footer": {
     "sourcesTitle": "权威科学数据源与极地测绘基准溯源",
-    "scaffoldReady": "Phase 0 基础设施完备 —— 双模视角同步、六语国际化校验、边缘气象缓存与极地地理网格全部就绪"
+    "scaffoldReady": "Phase 1 已上线 —— 3D 极地地球 ⇄ 2D EPSG:3031 双模画布、18 站 7 日预报、德雷克海况仪与海冰距平曲线已激活"
   }
 }

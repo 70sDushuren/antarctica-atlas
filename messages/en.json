@@ -18,6 +18,19 @@
     "themeDark": "Cryo Night",
     "themeLight": "Glacial Light"
   },
+  "canvas": {
+    "layerBlueMarble": "GIBS Shaded Bathymetry",
+    "layerModis": "GIBS Polar True Color",
+    "layerCryoVector": "EPSG:3031 Vector Chart",
+    "solarOverlay": "Solar Terminator",
+    "focusSouthPole": "90°S Pole",
+    "focusPeninsula": "Drake & Peninsula",
+    "focusRoss180": "Ross Sea 180°",
+    "focusDomeA": "Dome A Plateau",
+    "dragHint3d": "Drag to rotate 3D Southern Globe · Scroll to zoom · Click station or HSM beacons",
+    "dragHint2d": "Native EPSG:3031 Polar Stereographic projection · Zero 90°S singularity or ±180° Ross Sea seam",
+    "cursorCoords": "Cursor EPSG:3031"
+  },
   "telemetry": {
     "liveStatus": "Edge-Cached Telemetry · 30m Sync",
     "airTemp": "2m Air Temp",
@@ -31,7 +44,27 @@
     "drakeIndex": "Drake Passage Sea-State",
     "waveHeight": "Significant Wave Height",
     "wavePeriod": "Swell Period",
-    "seaIceExtent": "Antarctic Sea Ice Extent"
+    "sst": "Sea Surface Temp (SST)",
+    "seaIceExtent": "Antarctic Sea Ice Extent",
+    "forecast7dTitle": "7-Day Polar Temp, Wind Chill & Katabatic Gust Forecast",
+    "tempMax": "Daily High",
+    "tempMin": "Daily Low",
+    "katabaticNominal": "Nominal (< 35 kt)",
+    "katabaticWatch": "Katabatic Watch (35–55 kt)",
+    "katabaticSevere": "Severe Blizzard (> 55 kt)",
+    "drakeTier1": "Tier 1 · Drake Lake (< 2.0 m)",
+    "drakeTier2": "Tier 2 · Gentle Swell (2.0–3.5 m)",
+    "drakeTier3": "Tier 3 · Classic Drake Roll (3.5–5.5 m)",
+    "drakeTier4": "Tier 4 · Drake Shake (5.5–8.0 m)",
+    "drakeTier5": "Tier 5 · Extreme Tempest (≥ 8.0 m)",
+    "seaIceMedian": "1981–2010 Median",
+    "seaIceCurrent": "2026 Extent",
+    "seaIceAnomaly": "Anomaly",
+    "millionKm2": "M km²",
+    "filterStations": "Filter 18 polar stations by name or country…",
+    "allRegions": "All Antarctic Sectors",
+    "fallbackBadge": "Baseline Snapshot",
+    "liveApiBadge": "Live Open-Meteo ECMWF"
   },
   "geology": {
     "icePeelTitle": "Bedmap3 Ice-Sheet Peel Slider",
@@ -57,6 +90,6 @@
   },
   "footer": {
     "sourcesTitle": "Verified Scientific Data & Cartographic Sources",
-    "scaffoldReady": "Phase 0 Infrastructure Verified — Dual-Mode State Sync, 6-Locale i18n, Edge Telemetry & Polar Geo-Data Ready"
+    "scaffoldReady": "Phase 1 Live — Dual-Mode 3D Globe ⇄ 2D EPSG:3031 Canvas, 18-Station Forecast, Drake Sea-State & NSIDC Sea-Ice HUD Active"
   }
 }

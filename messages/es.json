@@ -18,6 +18,19 @@
     "themeDark": "Noche Polar",
     "themeLight": "Luz Glacial"
   },
+  "canvas": {
+    "layerBlueMarble": "GIBS Batimetría y Relieve",
+    "layerModis": "GIBS Satélite Color Real",
+    "layerCryoVector": "Carta Vectorial EPSG:3031",
+    "solarOverlay": "Terminador Solar",
+    "focusSouthPole": "Polo Sur 90°S",
+    "focusPeninsula": "Drake y Península",
+    "focusRoss180": "Mar de Ross 180°",
+    "focusDomeA": "Meseta Domo A",
+    "dragHint3d": "Arrastre para rotar el Globo Austral 3D · Rueda para zoom · Clic en bases o sitios HSM",
+    "dragHint2d": "Proyección Estereográfica Polar nativa EPSG:3031 · Sin distorsión en 90°S ni cortes en ±180°",
+    "cursorCoords": "Cursor EPSG:3031"
+  },
   "telemetry": {
     "liveStatus": "Telemetría en Caché Edge · Sinc. 30 min",
     "airTemp": "Temp. del Aire (2m)",
@@ -31,7 +44,27 @@
     "drakeIndex": "Estado del Mar en el Pasaje de Drake",
     "waveHeight": "Altura Significativa de Ola",
     "wavePeriod": "Período de Marejada",
-    "seaIceExtent": "Extensión de Hielo Marino Antártico"
+    "sst": "Temp. Superficial del Mar (SST)",
+    "seaIceExtent": "Extensión de Hielo Marino Antártico",
+    "forecast7dTitle": "Pronóstico de 7 Días: Temperatura, Sensación Térmica y Ráfagas Catabáticas",
+    "tempMax": "Máx. Diaria",
+    "tempMin": "Mín. Diaria",
+    "katabaticNominal": "Calma / Moderado (< 35 kt)",
+    "katabaticWatch": "Alerta Catabática (35–55 kt)",
+    "katabaticSevere": "Ventisca Severa (> 55 kt)",
+    "drakeTier1": "Nivel 1 · Lago Drake (< 2,0 m)",
+    "drakeTier2": "Nivel 2 · Marejada Suave (2,0–3,5 m)",
+    "drakeTier3": "Nivel 3 · Balanceo Clásico (3,5–5,5 m)",
+    "drakeTier4": "Nivel 4 · Drake Shake Fuerte (5,5–8,0 m)",
+    "drakeTier5": "Nivel 5 · Tempestad Extrema (≥ 8,0 m)",
+    "seaIceMedian": "Mediana 1981–2010",
+    "seaIceCurrent": "Extensión Actual",
+    "seaIceAnomaly": "Anomalía",
+    "millionKm2": "M km²",
+    "filterStations": "Filtrar 18 bases polares por nombre o país…",
+    "allRegions": "Todos los Sectores Antárticos",
+    "fallbackBadge": "Instantánea Base",
+    "liveApiBadge": "Open-Meteo ECMWF en Vivo"
   },
   "geology": {
     "icePeelTitle": "Control Bedmap3 de Capas del Manto de Hielo",
@@ -57,6 +90,6 @@
   },
   "footer": {
     "sourcesTitle": "Fuentes Científicas Verificadas y Referencias Cartográficas",
-    "scaffoldReady": "Infraestructura Fase 0 Verificada — Sincronía 2D/3D, 6 Idiomas, Caché Edge y Datos Polares Listos"
+    "scaffoldReady": "Fase 1 Activa — Globo 3D ⇄ Mapa 2D EPSG:3031, Pronóstico de 18 Bases, Pasaje de Drake y Hielo Marino NSIDC"
   }
 }

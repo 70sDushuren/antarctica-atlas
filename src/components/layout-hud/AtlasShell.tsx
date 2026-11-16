@@ -2,24 +2,25 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { DualModeAtlasCanvas } from '@/components/atlas-canvas';
+import {
+  DrakeSeaStateCard,
+  SeaIceAnomalyCard,
+  StationWeatherPanel
+} from '@/components/weather-hud';
 import type { SupportedLocale } from '@/i18n/routing';
 import {
   DEFAULT_ATLAS_URL_STATE,
   useAtlasUrlState
 } from '@/lib/atlas-url-state';
-import { computePolarSolarState, wgs84ToEpsg3031 } from '@/lib/polar-math';
 import { polarRepository } from '@/lib/polar-repository';
 import type {
   MarineCorridorTelemetry,
+  SeaIceSummaryPayload,
   StationWeatherTelemetry,
   ThemeMode,
   UnitSystem
 } from '@/lib/types';
-import {
-  formatPolarLength,
-  formatPolarTemperature,
-  formatPolarWindSpeed
-} from '@/lib/units-and-format';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
 const UNIT_CYCLE: UnitSystem[] = ['nautical', 'metric', 'imperial'];
@@ -27,7 +28,6 @@ const UNIT_CYCLE: UnitSystem[] = ['nautical', 'metric', 'imperial'];
 function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
   const tBrand = useTranslations('brand');
   const tNav = useTranslations('nav');
-  const tTel = useTranslations('telemetry');
   const tGeo = useTranslations('geology');
   const tCor = useTranslations('corridor');
   const tFoot = useTranslations('footer');
@@ -36,6 +36,7 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
   const [theme, setTheme] = useState<ThemeMode>('dark');
   const [weatherList, setWeatherList] = useState<StationWeatherTelemetry[]>([]);
   const [marineList, setMarineList] = useState<MarineCorridorTelemetry[]>([]);
+  const [seaIce, setSeaIce] = useState<SeaIceSummaryPayload | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -46,6 +47,10 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
     polarRepository
       .fetchMarineTelemetry(controller.signal)
       .then(setMarineList)
+      .catch(() => {});
+    polarRepository
+      .fetchSeaIceSummary(controller.signal)
+      .then(setSeaIce)
       .catch(() => {});
     return () => controller.abort();
   }, []);
@@ -58,17 +63,6 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
   const activeCorridor =
     corridors.find((c) => c.id === atlasState.corridor) ??
     polarRepository.getDefaultCorridor();
-  const activeStation =
-    polarRepository.getStationById(atlasState.station) ?? stations[0];
-
-  const liveStationWeather = weatherList.find(
-    (w) => w.stationId === activeStation.id
-  );
-  const drakeSample =
-    marineList.find((m) => m.pointId === 'drake-convergence') ?? marineList[0];
-
-  const projectedXY = wgs84ToEpsg3031(activeStation.lat, activeStation.lon);
-  const solar = computePolarSolarState(activeStation.lat);
 
   function toggleTheme() {
     const next = theme === 'dark' ? 'light' : 'dark';
@@ -154,9 +148,9 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
         </div>
       </header>
 
-      {/* Main Spatial Canvas Stage & Telemetry Grid */}
+      {/* Main Spatial Canvas & Telemetry HUD Grid */}
       <main className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
-        {/* Left Column: Default Pinned Expedition Corridor & Subglacial Ice-Peel Controls */}
+        {/* Left Column: Pinned Expedition Corridor, Bedmap3 Peel Slider & Drake Sea-State */}
         <section className="lg:col-span-4 flex flex-col gap-4">
           <div className="cryo-card rounded-2xl p-4 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -173,7 +167,15 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
               {tCor('selectRoute')}
               <select
                 value={activeCorridor.id}
-                onChange={(e) => updateAtlasState({ corridor: e.target.value })}
+                onChange={(e) => {
+                  const nextCorridor = corridors.find((c) => c.id === e.target.value);
+                  const midWp = nextCorridor?.waypoints[Math.floor((nextCorridor.waypoints.length || 1) / 2)];
+                  updateAtlasState({
+                    corridor: e.target.value,
+                    centerLat: midWp?.lat ?? atlasState.centerLat,
+                    centerLon: midWp?.lon ?? atlasState.centerLon
+                  });
+                }}
                 className="mt-1.5 w-full rounded-xl border border-sky-400/30 bg-slate-900/90 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400"
               >
                 {corridors.map((corridor) => (
@@ -188,33 +190,26 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
               {activeCorridor.summary[locale]}
             </p>
 
-            {drakeSample && (
-              <div className="rounded-xl border border-amber-400/25 bg-amber-500/10 p-2.5 text-xs flex flex-wrap items-center justify-between gap-2">
-                <span className="font-medium text-amber-200">
-                  {tTel('drakeIndex')}: {drakeSample.drakeTierCode}
-                </span>
-                <span className="font-mono text-amber-300">
-                  Hs {formatPolarLength(drakeSample.waveHeightM, atlasState.units, locale)} ·{' '}
-                  {drakeSample.wavePeriodS.toFixed(1)}s
-                </span>
-              </div>
-            )}
-
             <ol className="space-y-2 border-t border-slate-700/60 pt-3">
               {activeCorridor.waypoints.map((wp, idx) => (
-                <li
-                  key={wp.id}
-                  className="rounded-xl border border-slate-700/50 bg-slate-900/45 p-2.5 text-xs"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-1 font-semibold text-sky-200">
-                    <span>
-                      {idx + 1}. {wp.name[locale]}
-                    </span>
-                    <span className="font-mono text-[11px] text-slate-400">
-                      {wp.lat.toFixed(2)}°, {wp.lon.toFixed(2)}°
-                    </span>
-                  </div>
-                  <p className="mt-1 text-slate-300">{wp.highlight[locale]}</p>
+                <li key={wp.id}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateAtlasState({ centerLat: wp.lat, centerLon: wp.lon, zoom: 4 })
+                    }
+                    className="w-full text-left rounded-xl border border-slate-700/50 bg-slate-900/45 hover:border-sky-400/50 p-2.5 text-xs transition"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-1 font-semibold text-sky-200">
+                      <span>
+                        {idx + 1}. {wp.name[locale]}
+                      </span>
+                      <span className="font-mono text-[11px] text-slate-400">
+                        {wp.lat.toFixed(2)}°, {wp.lon.toFixed(2)}°
+                      </span>
+                    </div>
+                    <p className="mt-1 text-slate-300">{wp.highlight[locale]}</p>
+                  </button>
                 </li>
               ))}
             </ol>
@@ -222,7 +217,7 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
             <p className="text-[11px] text-slate-400">{tCor('safetyNotice')}</p>
           </div>
 
-          {/* Bedmap3 Ice-Peel Slider Control */}
+          {/* Bedmap3 Ice-Peel Slider Control (Live-Synced to 3D Globe & 2D EPSG:3031) */}
           <div className="cryo-card rounded-2xl p-4 space-y-2.5">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm font-semibold text-sky-300">
@@ -242,139 +237,79 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
             />
             <p className="text-xs text-slate-300">{tGeo('icePeelHint')}</p>
           </div>
+
+          {/* 5-Tier Drake Passage & Southern Ocean Sea-State Gauge */}
+          <DrakeSeaStateCard
+            locale={locale}
+            units={atlasState.units}
+            marineList={marineList}
+            onFocusBuoy={(lat, lon) =>
+              updateAtlasState({ centerLat: lat, centerLon: lon, zoom: 3 })
+            }
+          />
         </section>
 
-        {/* Center/Right Column: Dual-Mode Spatial Stage & Station/Heritage Inspector */}
+        {/* Right/Center Column: Dual-Mode Spatial Canvas + 18-Station Forecast + Sea Ice & HSM */}
         <section className="lg:col-span-8 flex flex-col gap-4">
-          <div className="cryo-card rounded-2xl p-5 flex-1 flex flex-col justify-between min-h-[360px]">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sky-400/20 pb-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                <span className="text-xs font-medium text-emerald-300">
-                  {tTel('liveStatus')}
-                </span>
-              </div>
-              <span className="font-mono text-xs text-sky-300">
-                Active Engine:{' '}
-                {atlasState.mode === '3d'
-                  ? '3D Polar Globe (WGS84 / ECEF)'
-                  : '2D Native EPSG:3031 (71°S Standard Parallel)'}
-              </span>
+          <DualModeAtlasCanvas
+            locale={locale}
+            atlasState={atlasState}
+            stations={stations}
+            weatherList={weatherList}
+            monuments={monuments}
+            activeCorridor={activeCorridor}
+            onUpdateState={updateAtlasState}
+          />
+
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+            <div className="xl:col-span-7">
+              <StationWeatherPanel
+                locale={locale}
+                units={atlasState.units}
+                stations={stations}
+                selectedStationId={atlasState.station}
+                weatherList={weatherList}
+                onSelectStation={(st) =>
+                  updateAtlasState({
+                    station: st.id,
+                    centerLat: st.lat,
+                    centerLon: st.lon
+                  })
+                }
+              />
             </div>
 
-            {/* Station Selector & Synced EPSG:3031 + Live Telemetry Readout */}
-            <div className="my-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="rounded-xl border border-sky-400/20 bg-slate-950/45 p-4 space-y-3">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-sky-400">
-                  {tNav('stations')}
-                  <select
-                    value={activeStation.id}
-                    onChange={(e) => {
-                      const nextStation = polarRepository.getStationById(e.target.value);
-                      updateAtlasState({
-                        station: e.target.value,
-                        centerLat: nextStation?.lat ?? atlasState.centerLat,
-                        centerLon: nextStation?.lon ?? atlasState.centerLon
-                      });
-                    }}
-                    className="mt-1.5 w-full rounded-xl border border-sky-400/30 bg-slate-900 px-3 py-2 text-sm text-white"
-                  >
-                    {stations.map((st) => (
-                      <option key={st.id} value={st.id}>
-                        {st.name[locale]} ({st.countryName[locale]})
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <p className="text-xs leading-relaxed text-slate-300">
-                  {activeStation.summary[locale]}
-                </p>
-
-                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                  <div className="rounded-lg bg-slate-900/70 p-2">
-                    <span className="block text-[10px] text-slate-400">WGS84</span>
-                    <span>
-                      {activeStation.lat.toFixed(3)}°, {activeStation.lon.toFixed(3)}°
-                    </span>
-                  </div>
-                  <div className="rounded-lg bg-slate-900/70 p-2">
-                    <span className="block text-[10px] text-slate-400">EPSG:3031 (m)</span>
-                    <span>
-                      X {(projectedXY.x / 1000).toFixed(0)}km · Y {(projectedXY.y / 1000).toFixed(0)}km
-                    </span>
-                  </div>
-                  <div className="rounded-lg bg-slate-900/70 p-2">
-                    <span className="block text-[10px] text-slate-400">{tGeo('surfaceElev')}</span>
-                    <span>
-                      {formatPolarLength(activeStation.elevationM, atlasState.units, locale, 0)}
-                    </span>
-                  </div>
-                  <div className="rounded-lg bg-slate-900/70 p-2">
-                    <span className="block text-[10px] text-slate-400">{tTel('solarRegime')}</span>
-                    <span>
-                      {solar.regime === 'polar-day'
-                        ? tTel('polarDay')
-                        : solar.regime === 'polar-night'
-                          ? tTel('polarNight')
-                          : tTel('daylightHours', { hours: solar.daylightHours })}
-                    </span>
-                  </div>
-                  {liveStationWeather && (
-                    <>
-                      <div className="rounded-lg bg-slate-900/70 p-2">
-                        <span className="block text-[10px] text-slate-400">
-                          {tTel('airTemp')} / {tTel('windChill')}
-                        </span>
-                        <span className="text-sky-300">
-                          {formatPolarTemperature(
-                            liveStationWeather.temperature2mC,
-                            atlasState.units,
-                            locale
-                          )}{' '}
-                          /{' '}
-                          {formatPolarTemperature(
-                            liveStationWeather.windChillC,
-                            atlasState.units,
-                            locale
-                          )}
-                        </span>
-                      </div>
-                      <div className="rounded-lg bg-slate-900/70 p-2">
-                        <span className="block text-[10px] text-slate-400">
-                          {tTel('katabaticGust')}
-                        </span>
-                        <span
-                          className={
-                            liveStationWeather.katabaticTier === 'severe'
-                              ? 'text-rose-400'
-                              : liveStationWeather.katabaticTier === 'watch'
-                                ? 'text-amber-300'
-                                : 'text-emerald-300'
-                          }
-                        >
-                          {formatPolarWindSpeed(
-                            liveStationWeather.windGusts10mKmh,
-                            atlasState.units,
-                            locale
-                          )}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
+            <div className="xl:col-span-5 flex flex-col gap-4">
+              <SeaIceAnomalyCard locale={locale} seaIce={seaIce} />
 
               {/* Featured Protected Historic Sites & Monuments (HSM) */}
-              <div className="rounded-xl border border-sky-400/20 bg-slate-950/45 p-4 space-y-2.5">
+              <div className="cryo-card rounded-2xl p-4 space-y-2.5">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-300">
                   {tNav('heritage')} · ATCM HSM
                 </h3>
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   {monuments.map((hsm) => (
                     <div
                       key={hsm.id}
-                      className="rounded-lg border border-slate-700/60 bg-slate-900/55 p-2.5 text-xs"
+                      onClick={() =>
+                        updateAtlasState({
+                          centerLat: hsm.lat,
+                          centerLon: hsm.lon,
+                          zoom: 4
+                        })
+                      }
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          updateAtlasState({
+                            centerLat: hsm.lat,
+                            centerLon: hsm.lon,
+                            zoom: 4
+                          });
+                        }
+                      }}
+                      className="cursor-pointer rounded-xl border border-slate-700/60 bg-slate-900/55 hover:border-amber-400/50 p-2.5 text-xs transition"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-1 font-semibold text-amber-200">
                         <span>{hsm.title[locale]}</span>
@@ -382,6 +317,7 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
                           href={hsm.sourceUrl}
                           target="_blank"
                           rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
                           className="rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-[11px] text-amber-300 underline"
                         >
                           {hsm.hsmCode} ({hsm.year})
@@ -393,10 +329,10 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-3.5 py-2 text-xs text-emerald-200">
-              {tFoot('scaffoldReady')}
-            </div>
+          <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-3.5 py-2 text-xs text-emerald-200">
+            {tFoot('scaffoldReady')}
           </div>
         </section>
       </main>

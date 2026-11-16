@@ -122,17 +122,46 @@ def verify_epsg3031_benchmarks():
 
 def generate_polar_boundaries():
     GEO_OUT_DIR.mkdir(parents=True, exist_ok=True)
-    # Key Antarctic continental coast + Peninsula + Ross & Filchner-Ronne Ice Shelf ring (WGS84 & EPSG:3031)
+    # Detailed Antarctic continental coast + Peninsula + Ross & Filchner-Ronne Ice Shelf embayments
     coast_latlon = [
-        (-63.3, -57.0), (-64.8, -63.5), (-68.5, -68.0), (-72.5, -72.0), (-73.5, -90.0),
-        (-74.8, -105.0), (-74.5, -125.0), (-76.0, -145.0), (-78.2, -165.0), (-78.5, 180.0),
-        (-77.8, 166.6), (-74.9, 163.7), (-71.3, 170.2), (-68.5, 150.0), (-66.6, 140.0),
-        (-66.3, 110.5), (-69.4, 76.4), (-67.6, 62.9), (-69.0, 39.6), (-70.5, 10.0),
-        (-70.6, -8.3), (-75.5, -26.6), (-78.0, -42.0), (-77.5, -60.0), (-74.0, -61.0),
-        (-68.0, -61.5), (-64.2, -56.6), (-63.3, -57.0)
+        (-63.3, -57.0), (-64.0, -60.8), (-64.8, -63.5), (-66.5, -66.8), (-68.5, -68.2),
+        (-70.8, -69.5), (-72.5, -72.0), (-73.2, -80.0), (-73.5, -90.0), (-74.8, -102.0),
+        (-75.1, -114.0), (-74.5, -128.0), (-75.8, -142.0), (-77.4, -155.0), (-78.4, -164.0),
+        (-81.5, -170.0), (-84.2, -175.0), (-84.5, 172.0), (-80.5, 162.0), (-77.8, 166.6),
+        (-74.9, 163.7), (-71.3, 170.2), (-70.2, 161.0), (-68.5, 150.0), (-66.6, 140.0),
+        (-66.3, 125.0), (-66.3, 110.5), (-67.5, 93.0), (-69.4, 76.4), (-67.8, 68.0),
+        (-67.6, 62.9), (-66.8, 51.0), (-69.0, 39.6), (-70.1, 24.0), (-70.5, 10.0),
+        (-70.7, -8.3), (-73.5, -18.0), (-75.6, -26.7), (-78.2, -36.0), (-81.2, -48.0),
+        (-80.5, -62.0), (-76.5, -61.5), (-74.0, -61.0), (-70.5, -61.2), (-66.8, -61.8),
+        (-64.2, -56.6), (-63.3, -57.0)
     ]
-    treaty_60s = [(-60.0, lon) for lon in range(-180, 181, 5)]
-    polar_circle = [(-66.563, lon) for lon in range(-180, 181, 5)]
+
+    ross_shelf = [
+        (-78.4, -164.0), (-78.5, -178.0), (-78.3, 180.0), (-77.8, 166.6),
+        (-80.5, 162.0), (-84.5, 172.0), (-84.2, -175.0), (-81.5, -170.0), (-78.4, -164.0)
+    ]
+
+    filchner_ronne_shelf = [
+        (-75.6, -26.7), (-75.2, -45.0), (-74.8, -60.5), (-76.5, -61.5),
+        (-80.5, -62.0), (-81.2, -48.0), (-78.2, -36.0), (-75.6, -26.7)
+    ]
+
+    # Southern Hemisphere gateway landmasses for 3D Polar Globe spatial context
+    south_america_cone = [
+        (-38.0, -57.5), (-42.8, -64.5), (-47.5, -65.9), (-51.6, -69.2),
+        (-53.2, -70.9), (-54.8, -68.3), (-55.98, -67.27), (-54.5, -72.5),
+        (-50.5, -75.2), (-44.0, -74.0), (-38.0, -73.5), (-38.0, -57.5)
+    ]
+    new_zealand_south = [
+        (-40.8, 173.0), (-43.8, 172.8), (-46.6, 168.3), (-45.2, 166.8),
+        (-42.5, 171.2), (-40.8, 173.0)
+    ]
+    tasmania_ring = [
+        (-40.7, 144.7), (-41.2, 148.3), (-43.6, 146.9), (-42.8, 145.3), (-40.7, 144.7)
+    ]
+
+    treaty_60s = [(-60.0, lon) for lon in range(-180, 181, 4)]
+    polar_circle = [(-66.563, lon) for lon in range(-180, 181, 4)]
 
     outline_doc = {
         "crs": "EPSG:3031",
@@ -143,6 +172,27 @@ def generate_polar_boundaries():
         "antarcticContinentRing": [
             {"lat": lat, "lon": lon, "x": wgs84_to_epsg3031(lat, lon)[0], "y": wgs84_to_epsg3031(lat, lon)[1]}
             for lat, lon in coast_latlon
+        ],
+        "iceShelves": [
+            {
+                "id": "ross-ice-shelf",
+                "vertices": [
+                    {"lat": lat, "lon": lon, "x": wgs84_to_epsg3031(lat, lon)[0], "y": wgs84_to_epsg3031(lat, lon)[1]}
+                    for lat, lon in ross_shelf
+                ]
+            },
+            {
+                "id": "filchner-ronne-ice-shelf",
+                "vertices": [
+                    {"lat": lat, "lon": lon, "x": wgs84_to_epsg3031(lat, lon)[0], "y": wgs84_to_epsg3031(lat, lon)[1]}
+                    for lat, lon in filchner_ronne_shelf
+                ]
+            }
+        ],
+        "southernGateways": [
+            {"id": "south-america-cone", "coords": [{"lat": lat, "lon": lon} for lat, lon in south_america_cone]},
+            {"id": "new-zealand-south", "coords": [{"lat": lat, "lon": lon} for lat, lon in new_zealand_south]},
+            {"id": "tasmania", "coords": [{"lat": lat, "lon": lon} for lat, lon in tasmania_ring]}
         ],
         "treatyBoundary60S": [
             {"lat": lat, "lon": lon, "x": wgs84_to_epsg3031(lat, lon)[0], "y": wgs84_to_epsg3031(lat, lon)[1]}

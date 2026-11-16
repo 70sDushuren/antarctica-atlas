@@ -6,13 +6,12 @@ declare module 'leaflet' {
       origin?: [number, number];
       transformation?: L.Transformation;
       scales?: number[];
-      resolutions?: number[];
+      resolutions?: readonly number[] | number[];
       bounds?: L.Bounds;
     }
 
-    class CRS extends L.CRS {
-      constructor(code: string, proj4def: string, options?: CRSOptions);
-    }
+    type CRS = L.CRS;
+    const CRS: new (code: string, proj4def: string, options?: CRSOptions) => L.CRS;
 
     class GeoJSON extends L.GeoJSON {
       constructor(geojson?: GeoJSON.GeoJsonObject, options?: L.GeoJSONOptions);
