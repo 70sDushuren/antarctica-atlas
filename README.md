@@ -4,6 +4,8 @@
 > **Holistic Live Weather, Subglacial Geology & Exploration Heritage Digital Atlas**
 
 [![Antarctica Atlas CI & Polar QA](https://github.com/70sDushuren/antarctica-atlas/actions/workflows/ci.yml/badge.svg)](https://github.com/70sDushuren/antarctica-atlas/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/Code_License-MIT-10b981.svg)](./LICENSE)
+[![Data: CC BY 4.0](https://img.shields.io/badge/Scientific_Data-CC_BY_4.0-38bdf8.svg)](https://creativecommons.org/licenses/by/4.0/)
 
 **Antarctica Atlas** is a spatial-first interactive polar digital atlas built on **Next.js 15 (Option A Serverless Edge Architecture)**, featuring seamless **3D Polar Globe ⇄ 2D Native `EPSG:3031` Antarctic Polar Stereographic** synchronization, edge-cached live meteorology & Drake Passage sea-state telemetry, **Bedmap3** subglacial bedrock cross-section profiling, and complete **6-locale internationalization (`next-intl`)**:
 - `en` — **English**
@@ -92,3 +94,10 @@ antarctica-atlas/
 - **Polar Satellite Imagery & Sea Ice**: [NASA Earthdata GIBS (`EPSG:3031`)](https://nasa-gibs.github.io/gibs-api-docs/access-basics/), [NSIDC Sea Ice Index v4](https://nsidc.org/data/g02135/versions/4), [EUMETSAT OSI SAF](https://osi-saf.eumetsat.int/sea-ice-index)
 - **Subglacial Bedrock & Geology**: [British Antarctic Survey Bedmap3](https://www.bas.ac.uk/project/bedmap3/), [SCAR GeoMAP (GNS Science)](https://www.gns.cri.nz/data-and-resources/geomap-geological-mapping-of-antarctica/), [PGC REMA](https://www.pgc.umn.edu/data/rema/)
 - **Stations, Toponymy & Heritage**: [COMNAP Antarctic Facilities](https://www.comnap.aq/antarctic-facilities-information), [SCAR Composite Gazetteer (CGA)](https://placenames.aq/), [Antarctic Treaty HSM Registry (45 CFR 670.29)](https://www.ecfr.gov/current/title-45/subtitle-B/chapter-VI/part-670/subpart-F/section-670.29), [IAATO Visitor Guidelines](https://iaato.org/visiting-antarctica/visitor-guidelines-library)
+
+---
+
+## License & Compliance / 开源许可与数据合规声明
+
+- **Source Code (`MIT`)**: Original code, UI components, and 6-locale translations are licensed under the [MIT License](./LICENSE).
+- **Scientific Datasets (`CC BY 4.0` & Open Data)**: Polar datasets (Open-Meteo/ECMWF, BAS Bedmap3, SCAR GeoMAP/ADD/CGA, COMNAP, EUMETSAT OSI SAF) are attributed and simplified/resampled for interactive web rendering under [Creative Commons Attribution 4.0 International (`CC BY 4.0`)](https://creativecommons.org/licenses/by/4.0/). Full academic citations, modification disclosures, and Open-Meteo non-commercial free-tier API terms are documented in [`NOTICE.md`](./NOTICE.md).

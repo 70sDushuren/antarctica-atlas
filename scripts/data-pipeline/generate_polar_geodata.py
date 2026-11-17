@@ -165,6 +165,9 @@ def generate_polar_boundaries():
 
     outline_doc = {
         "crs": "EPSG:3031",
+        "license": "CC-BY-4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "adaptationNote": "Simplified planar EPSG:3031 web vector representation; no institutional endorsement implied.",
         "attribution": {
             "basAdd": "https://www.bas.ac.uk/project/add/",
             "epsg3031": "https://spatialreference.org/ref/epsg/3031/"
@@ -260,6 +263,9 @@ def generate_polar_boundaries():
 
     grid_doc = {
         "crs": "EPSG:3031",
+        "license": "CC-BY-4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "adaptationNote": "Simplified 100 km planar EPSG:3031 web-resampled elevation grid; no endorsement by BAS implied.",
         "reference": "https://www.bas.ac.uk/project/bedmap3/",
         "gridBoundsKm": {"min": -2800, "max": 2800, "step": 100},
         "tupleFields": ["surfaceElevationM", "bedElevationM", "iceThicknessM"],

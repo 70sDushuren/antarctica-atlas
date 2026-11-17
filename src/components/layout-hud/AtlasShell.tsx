@@ -450,10 +450,38 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
         </section>
       </main>
 
-      {/* Authoritative Scientific Source Attribution Footer */}
-      <footer className="cryo-card rounded-2xl p-4 space-y-2">
-        <div className="text-xs font-semibold text-slate-300">
-          {tFoot('sourcesTitle')}
+      {/* Authoritative Scientific Source Attribution & License Compliance Footer */}
+      <footer className="cryo-card rounded-2xl p-4 space-y-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-xs font-semibold text-slate-300">
+            {tFoot('sourcesTitle')}
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono">
+            <a
+              href="https://github.com/70sDushuren/antarctica-atlas/blob/main/LICENSE"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300 hover:border-emerald-400/60"
+            >
+              Code: MIT
+            </a>
+            <a
+              href="https://creativecommons.org/licenses/by/4.0/"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded border border-sky-400/30 bg-sky-500/10 px-2 py-0.5 text-sky-300 hover:border-sky-400/60"
+            >
+              Data: CC BY 4.0
+            </a>
+            <a
+              href="https://github.com/70sDushuren/antarctica-atlas/blob/main/NOTICE.md"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded border border-slate-600 bg-slate-900/70 px-2 py-0.5 text-slate-300 hover:text-white"
+            >
+              NOTICE.md
+            </a>
+          </div>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs">
           {scientificSources.map((src) => (
@@ -468,6 +496,9 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
             </a>
           ))}
         </div>
+        <p className="border-t border-slate-800/80 pt-2 text-[11px] leading-relaxed text-slate-400">
+          {tFoot('licenseNotice')}
+        </p>
       </footer>
     </div>
   );

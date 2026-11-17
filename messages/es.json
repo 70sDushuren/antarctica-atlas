@@ -136,6 +136,7 @@
   },
   "footer": {
     "sourcesTitle": "Fuentes Científicas Verificadas y Referencias Cartográficas",
-    "scaffoldReady": "Antarctica Atlas V1.0 Completo — Los 5 Módulos Polares y los 6 Idiomas Verificados"
+    "scaffoldReady": "Antarctica Atlas V1.0 Completo — Los 5 Módulos Polares y los 6 Idiomas Verificados",
+    "licenseNotice": "Código fuente bajo Licencia MIT · Datos científicos polares (Open-Meteo/ECMWF, BAS Bedmap3, SCAR GeoMAP/ADD/CGA, COMNAP, OSI SAF) adaptados y remuestreados para web bajo CC BY 4.0 (sin respaldo institucional implícito; API gratuita de Open-Meteo solo para uso no comercial)."
   }
 }

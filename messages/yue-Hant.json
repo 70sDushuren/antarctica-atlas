@@ -136,6 +136,7 @@
   },
   "footer": {
     "sourcesTitle": "官方科研數據來源同埋極地地圖基準",
-    "scaffoldReady": "Antarctica Atlas V1.0 全部五大功能同六種語言版本已經整好晒 —— 隨時可以開始探索南極！"
+    "scaffoldReady": "Antarctica Atlas V1.0 全部五大功能同六種語言版本已經整好晒 —— 隨時可以開始探索南極！",
+    "licenseNotice": "網站程式碼用 MIT 協議開源 · 所用嘅南極科研數據（Open-Meteo/ECMWF、BAS Bedmap3、SCAR GeoMAP/ADD/CGA、COMNAP、OSI SAF）全部跟足 CC BY 4.0 署名協議做咗網頁版簡化重採樣（唔代表原機構背書；Open-Meteo 免費接口只供非商業科普同研究使用）。"
   }
 }

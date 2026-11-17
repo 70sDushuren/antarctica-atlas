@@ -136,6 +136,7 @@
   },
   "footer": {
     "sourcesTitle": "Verified Scientific Data & Cartographic Sources",
-    "scaffoldReady": "Antarctica Atlas V1.0 Complete — All 5 Core Polar Modules & 6-Locale Internationalization Verified"
+    "scaffoldReady": "Antarctica Atlas V1.0 Complete — All 5 Core Polar Modules & 6-Locale Internationalization Verified",
+    "licenseNotice": "Source code licensed under MIT · Polar datasets (Open-Meteo/ECMWF, BAS Bedmap3, SCAR GeoMAP/ADD/CGA, COMNAP, OSI SAF) adapted & resampled for interactive web use under CC BY 4.0 (no institutional endorsement implied; Open-Meteo free API tier for non-commercial use)."
   }
 }

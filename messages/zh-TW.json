@@ -136,6 +136,7 @@
   },
   "footer": {
     "sourcesTitle": "權威科學資料源與極地測繪基準溯源",
-    "scaffoldReady": "Antarctica Atlas V1.0 全模組交付就緒 —— 五大極地核心業務模組與六語國際化體系已通過完整驗收"
+    "scaffoldReady": "Antarctica Atlas V1.0 全模組交付就緒 —— 五大極地核心業務模組與六語國際化體系已通過完整驗收",
+    "licenseNotice": "專案原始碼採用 MIT 授權條款開源 · 極地科學資料集（Open-Meteo/ECMWF、BAS Bedmap3、SCAR GeoMAP/ADD/CGA、COMNAP、OSI SAF）依 CC BY 4.0 授權經 Web 簡化重採樣呈現（不代表原機構背書；Open-Meteo 免費介面限非商業用途）。"
   }
 }

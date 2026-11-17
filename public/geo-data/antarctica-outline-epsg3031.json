@@ -1,5 +1,8 @@
 {
   "crs": "EPSG:3031",
+  "license": "CC-BY-4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "adaptationNote": "Simplified planar EPSG:3031 web vector representation; no institutional endorsement implied.",
   "attribution": {
     "basAdd": "https://www.bas.ac.uk/project/add/",
     "epsg3031": "https://spatialreference.org/ref/epsg/3031/"
