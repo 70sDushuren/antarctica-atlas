@@ -15,6 +15,7 @@ import {
   NASA_GIBS_EPSG3031_CONFIG,
   wgs84ToEpsg3031
 } from '@/lib/polar-math';
+import { buildBlurredFallbackTileDataUrl } from '@/lib/polar-tile-fallback';
 import type {
   ExpeditionCorridor,
   HistoricMonument,
@@ -54,11 +55,45 @@ export interface PolarMap2DEpsg3031Props {
   onMapClickCoordinate?: (lat: number, lon: number) => void;
   onCameraChange: (patch: { centerLat?: number; centerLon?: number; zoom?: number }) => void;
   onSelectStation: (stationId: string) => void;
+  onInspectEntity?: (inspectKey: string, lat: number, lon: number) => void;
   onCursorMove?: (coords: { lat: number; lon: number; xKm: number; yKm: number } | null) => void;
 }
 
-const TRANSPARENT_TILE =
-  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+const LOADED_WMTS_TILE_CACHE = new Map<string, HTMLImageElement>();
+
+function cropParentTileQuadrantDataUrl(
+  baseLayer: PolarBaseLayer,
+  z: number,
+  x: number,
+  y: number
+): string | null {
+  if (z <= 0 || typeof document === 'undefined') return null;
+  const pz = z - 1;
+  const px = Math.floor(x / 2);
+  const py = Math.floor(y / 2);
+  const parentImg = LOADED_WMTS_TILE_CACHE.get(`${baseLayer}:${pz}:${px}:${py}`);
+  if (!parentImg || !parentImg.complete || parentImg.naturalWidth === 0) {
+    return null;
+  }
+
+  try {
+    const halfW = parentImg.naturalWidth / 2;
+    const halfH = parentImg.naturalHeight / 2;
+    const sx = (x % 2) * halfW;
+    const sy = (y % 2) * halfH;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(parentImg, sx, sy, halfW, halfH, 0, 0, 64, 64);
+    return canvas.toDataURL('image/jpeg', 0.72);
+  } catch {
+    // Cross-origin taint safe fallback
+    return null;
+  }
+}
 
 function clampPolarLat(lat: number): number {
   return Math.max(-89.99, Math.min(-52.0, lat));
@@ -110,6 +145,7 @@ export default function PolarMap2DEpsg3031({
   onMapClickCoordinate,
   onCameraChange,
   onSelectStation,
+  onInspectEntity,
   onCursorMove
 }: PolarMap2DEpsg3031Props) {
   const mapElRef = useRef<HTMLDivElement | null>(null);
@@ -119,11 +155,13 @@ export default function PolarMap2DEpsg3031({
   const suppressMoveRef = useRef(false);
   const clickCallbackRef = useRef(onMapClickCoordinate);
   const pickingRef = useRef(isPickingTransect);
+  const bedmapGridRef = useRef<SubglacialBedmapGrid | null>(bedmapGrid);
 
   useEffect(() => {
     clickCallbackRef.current = onMapClickCoordinate;
     pickingRef.current = isPickingTransect;
-  }, [onMapClickCoordinate, isPickingTransect]);
+    bedmapGridRef.current = bedmapGrid;
+  }, [onMapClickCoordinate, isPickingTransect, bedmapGrid]);
 
   const densifiedCorridorLatLngs = useMemo(() => {
     const pts: Array<[number, number]> = [];
@@ -262,14 +300,93 @@ export default function PolarMap2DEpsg3031({
 
     const maxNativeZoom = baseLayer === 'gibs-modis' ? 5 : 4;
 
-    const layer = L.tileLayer(tileUrl, {
+    const BlurredResilientTileLayer = L.TileLayer.extend({
+      createTile(
+        this: L.TileLayer,
+        coords: L.Coords,
+        done: L.DoneCallback
+      ): HTMLElement {
+        const slot = document.createElement('div');
+        slot.className = 'leaflet-tile polar-tile-slot';
+
+        // 1. Instant blurred placeholder: prefer upscaled parent WMTS tile, else Bedmap3 EPSG:3031 raster
+        const placeholderImg = document.createElement('img');
+        placeholderImg.alt = '';
+        placeholderImg.className = 'polar-tile-placeholder';
+        const parentCrop = cropParentTileQuadrantDataUrl(
+          baseLayer,
+          coords.z,
+          coords.x,
+          coords.y
+        );
+        placeholderImg.src =
+          parentCrop ||
+          buildBlurredFallbackTileDataUrl(
+            coords.z,
+            coords.x,
+            coords.y,
+            bedmapGridRef.current,
+            baseLayer
+          );
+        slot.appendChild(placeholderImg);
+
+        // 2. Asynchronous live satellite WMTS tile that sharpens & cross-fades once ready
+        const liveImg = document.createElement('img');
+        liveImg.alt = '';
+        liveImg.crossOrigin = 'anonymous';
+        liveImg.decoding = 'async';
+        liveImg.className = 'polar-tile-live';
+        slot.appendChild(liveImg);
+
+        const targetUrl = this.getTileUrl(coords);
+        let retries = 0;
+        let completedLeaflet = false;
+
+        const finishOnce = () => {
+          if (!completedLeaflet) {
+            completedLeaflet = true;
+            done(undefined, slot);
+          }
+        };
+
+        liveImg.onload = () => {
+          const cacheKey = `${baseLayer}:${coords.z}:${coords.x}:${coords.y}`;
+          if (LOADED_WMTS_TILE_CACHE.size > 160) {
+            const firstKey = LOADED_WMTS_TILE_CACHE.keys().next().value;
+            if (firstKey) LOADED_WMTS_TILE_CACHE.delete(firstKey);
+          }
+          LOADED_WMTS_TILE_CACHE.set(cacheKey, liveImg);
+          requestAnimationFrame(() => {
+            slot.classList.add('is-sharp');
+          });
+          finishOnce();
+        };
+
+        liveImg.onerror = () => {
+          // Keep softly blurred polar fallback visible immediately; retry silently in background
+          finishOnce();
+          if (retries < 2) {
+            retries += 1;
+            const retryDelayMs = 3500 * retries + Math.floor(Math.random() * 1800);
+            setTimeout(() => {
+              if (!slot.isConnected) return;
+              const sep = targetUrl.includes('?') ? '&' : '?';
+              liveImg.src = `${targetUrl}${sep}r=${retries}`;
+            }, retryDelayMs);
+          }
+        };
+
+        liveImg.src = targetUrl;
+        return slot;
+      }
+    }) as unknown as new (urlTemplate: string, options?: L.TileLayerOptions) => L.TileLayer;
+
+    const layer = new BlurredResilientTileLayer(tileUrl, {
       tileSize: NASA_GIBS_EPSG3031_CONFIG.tileSize,
       minZoom: 0,
       maxZoom: 5,
       maxNativeZoom,
-      noWrap: true,
-      opacity: 0.78,
-      errorTileUrl: TRANSPARENT_TILE
+      noWrap: true
     });
 
     layer.addTo(map);
@@ -454,27 +571,43 @@ export default function PolarMap2DEpsg3031({
 
     // SCAR GeoMAP Geological Sites
     for (const geoSite of geologicalSites) {
-      L.circleMarker([clampPolarLat(geoSite.lat), geoSite.lon], {
+      const gMarker = L.circleMarker([clampPolarLat(geoSite.lat), geoSite.lon], {
         radius: 5.5,
         color: '#0f172a',
         weight: 1.4,
         fillColor: geoSite.category === 'volcano' ? '#f43f5e' : '#c084fc',
         fillOpacity: 0.92
-      })
-        .bindTooltip(`${geoSite.name[locale]}`, { direction: 'top' })
-        .addTo(group);
+      }).bindTooltip(`${geoSite.name[locale]}`, { direction: 'top' });
+
+      gMarker.on('click', () => {
+        if (pickingRef.current && clickCallbackRef.current) {
+          clickCallbackRef.current(geoSite.lat, geoSite.lon);
+          return;
+        }
+        onInspectEntity?.(`geology:${geoSite.id}`, geoSite.lat, geoSite.lon);
+        onCameraChange({ centerLat: geoSite.lat, centerLon: geoSite.lon });
+      });
+      gMarker.addTo(group);
     }
 
     for (const hsm of monuments) {
-      L.circleMarker([hsm.lat, hsm.lon], {
+      const hMarker = L.circleMarker([hsm.lat, hsm.lon], {
         radius: 5.8,
         color: '#fef3c7',
         weight: 1.4,
         fillColor: '#d97706',
         fillOpacity: 0.95
-      })
-        .bindTooltip(`${hsm.hsmCode} · ${hsm.title[locale]}`, { direction: 'top' })
-        .addTo(group);
+      }).bindTooltip(`${hsm.hsmCode} · ${hsm.title[locale]}`, { direction: 'top' });
+
+      hMarker.on('click', () => {
+        if (pickingRef.current && clickCallbackRef.current) {
+          clickCallbackRef.current(hsm.lat, hsm.lon);
+          return;
+        }
+        onInspectEntity?.(`hsm:${hsm.id}`, hsm.lat, hsm.lon);
+        onCameraChange({ centerLat: hsm.lat, centerLon: hsm.lon });
+      });
+      hMarker.addTo(group);
     }
 
     for (const st of stations) {
@@ -499,6 +632,7 @@ export default function PolarMap2DEpsg3031({
           return;
         }
         onSelectStation(st.id);
+        onInspectEntity?.(`station:${st.id}`, st.lat, st.lon);
         onCameraChange({ centerLat: st.lat, centerLon: st.lon });
       });
 
@@ -521,6 +655,7 @@ export default function PolarMap2DEpsg3031({
     selectedStationId,
     locale,
     onSelectStation,
+    onInspectEntity,
     onCameraChange
   ]);
 

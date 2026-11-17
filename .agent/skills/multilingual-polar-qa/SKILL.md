@@ -22,3 +22,9 @@ When authoring `yue-Hant` strings:
 When verifying UI components in [Google Antigravity](https://antigravity.google/docs/artifacts/):
 - Test `/es` and `/pt` specifically on narrow viewports (`390px` mobile and `1280px` compact desktop) to verify navigation pills, corridor selectors, and telemetry badges wrap cleanly without overlapping map controls.
 - Confirm switching locales in `LanguageSwitcher` preserves URL search params (`?mode=2d&corridor=peninsula-weddell&station=great-wall`) so zero user context is lost.
+
+## 4. Mandatory 3D/2D Interactive UI Stress & Camera-Persistence Acceptance Tests
+Before marking any release or UI change complete, execute both `npm test` (`tests/ui-globe-interaction.test.mts`) and live browser interaction checks:
+1. **High-Frequency 3D Globe Multi-Turn Drag & Wheel Zoom**: Drag-rotate the 3D Polar Globe continuously for > 3 seconds across multiple 360° revolutions (`±180°` wrap) and scroll-zoom rapidly. Verify zero `SecurityError` (`history.replaceState` rate limit) or React Error Boundary (`error.tsx`) interruptions occur.
+2. **High-Frequency Slider & Tab Switching**: Scrub the Bedmap3 Ice-Peel slider (`0% ↔ 100%`) rapidly while switching between 3D Globe and 2D `EPSG:3031` Map and across the 4 workspace tabs.
+3. **Camera & Context Persistence on Reload / Recovery**: After rotating to a non-default coordinate (e.g., Ross Sea `-77.85°, 166.67°`), verify reloading, switching locales, or recovering state preserves the exact rotated `(lat, lon, zoom, tab, peel)` position rather than resetting to initial defaults.

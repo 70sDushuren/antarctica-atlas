@@ -46,6 +46,7 @@ export interface DualModeAtlasCanvasProps {
   historicTrackLayers?: HistoricTrackRenderLayer[];
   isPickingTransect: boolean;
   onMapClickCoordinate?: (lat: number, lon: number) => void;
+  onInspectEntity?: (inspectKey: string, lat: number, lon: number) => void;
   onUpdateState: (patch: Partial<AtlasUrlState>) => void;
 }
 
@@ -64,6 +65,7 @@ export function DualModeAtlasCanvas({
   historicTrackLayers = [],
   isPickingTransect,
   onMapClickCoordinate,
+  onInspectEntity,
   onUpdateState
 }: DualModeAtlasCanvasProps) {
   const tCanvas = useTranslations('canvas');
@@ -175,7 +177,7 @@ export function DualModeAtlasCanvas({
 
       {/* Main Spatial Canvas Viewport */}
       <div
-        className={`relative h-[430px] md:h-[470px] w-full overflow-hidden rounded-xl border ${
+        className={`relative flex-1 min-h-[390px] md:min-h-[450px] w-full overflow-hidden rounded-xl border ${
           isPickingTransect ? 'border-fuchsia-400 ring-2 ring-fuchsia-400/35' : 'border-sky-400/20'
         }`}
       >
@@ -202,6 +204,7 @@ export function DualModeAtlasCanvas({
             onMapClickCoordinate={onMapClickCoordinate}
             onCameraChange={(patch) => onUpdateState(patch)}
             onSelectStation={(stationId) => onUpdateState({ station: stationId })}
+            onInspectEntity={onInspectEntity}
             onCursorMove={setCursorCoords}
           />
         ) : (
@@ -228,6 +231,7 @@ export function DualModeAtlasCanvas({
             onMapClickCoordinate={onMapClickCoordinate}
             onCameraChange={(patch) => onUpdateState(patch)}
             onSelectStation={(stationId) => onUpdateState({ station: stationId })}
+            onInspectEntity={onInspectEntity}
             onCursorMove={setCursorCoords}
           />
         )}

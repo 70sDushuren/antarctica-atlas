@@ -1,14 +1,20 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 
 export default function LocaleError({
+  error,
   reset
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
   const t = useTranslations('status');
+
+  useEffect(() => {
+    console.error('[Antarctica Atlas Runtime Error Boundary]', error);
+  }, [error]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">

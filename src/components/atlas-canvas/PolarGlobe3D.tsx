@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SupportedLocale } from '@/i18n/routing';
 import {
+  clampPolarGlobeLatDeg,
+  normalizeLongitudeDeg
+} from '@/lib/atlas-url-state';
+import {
   computeSubsolarPoint,
   densifyGreatCircle,
   epsg3031ToWgs84,
@@ -45,6 +49,7 @@ export interface PolarGlobe3DProps {
   onMapClickCoordinate?: (lat: number, lon: number) => void;
   onCameraChange: (patch: { centerLat?: number; centerLon?: number; zoom?: number }) => void;
   onSelectStation: (stationId: string) => void;
+  onInspectEntity?: (inspectKey: string, lat: number, lon: number) => void;
   onCursorMove?: (coords: { lat: number; lon: number; xKm: number; yKm: number } | null) => void;
 }
 
@@ -174,6 +179,7 @@ export default function PolarGlobe3D({
   onMapClickCoordinate,
   onCameraChange,
   onSelectStation,
+  onInspectEntity,
   onCursorMove
 }: PolarGlobe3DProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -197,6 +203,33 @@ export default function PolarGlobe3D({
 
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 760, h: 480 });
   const [hoveredBeacon, setHoveredBeacon] = useState<ScreenBeacon | null>(null);
+  const [liveCam, setLiveCam] = useState<{ lat: number; lon: number }>({
+    lat: centerLat,
+    lon: centerLon
+  });
+  const liveCamRef = useRef<{ lat: number; lon: number }>({
+    lat: centerLat,
+    lon: centerLon
+  });
+  const lastParentSyncMsRef = useRef<number>(0);
+  const zoomRef = useRef<number>(zoom);
+  const onCameraChangeRef = useRef(onCameraChange);
+
+  useEffect(() => {
+    zoomRef.current = zoom;
+    onCameraChangeRef.current = onCameraChange;
+  }, [zoom, onCameraChange]);
+
+  useEffect(() => {
+    if (!dragRef.current.dragging) {
+      const synced = {
+        lat: clampPolarGlobeLatDeg(centerLat),
+        lon: normalizeLongitudeDeg(centerLon)
+      };
+      liveCamRef.current = synced;
+      setLiveCam(synced);
+    }
+  }, [centerLat, centerLon]);
 
   const corridorArcPoints = useMemo(() => {
     const pts: Array<{ lat: number; lon: number }> = [];
@@ -253,14 +286,14 @@ export default function PolarGlobe3D({
     canvas.height = size.h * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const cx = size.w / 2;
-    const cy = size.h / 2;
-    const baseRadius = Math.min(size.w, size.h) * 0.41;
+    const cx = Math.max(20, size.w / 2);
+    const cy = Math.max(20, size.h / 2);
+    const baseRadius = Math.max(24, Math.min(size.w, size.h) * 0.41);
     const zoomFactor = 0.78 + Math.max(0, Math.min(8, zoom)) * 0.16;
-    const radius = baseRadius * zoomFactor;
+    const radius = Math.max(24, baseRadius * zoomFactor);
 
-    const camLat = Math.max(-90, Math.min(-25, centerLat));
-    const camLon = centerLon;
+    const camLat = clampPolarGlobeLatDeg(liveCam.lat);
+    const camLon = normalizeLongitudeDeg(liveCam.lon);
 
     ctx.clearRect(0, 0, size.w, size.h);
     const spaceGrad = ctx.createRadialGradient(cx, cy, radius * 0.25, cx, cy, Math.max(size.w, size.h) * 0.75);
@@ -627,8 +660,8 @@ export default function PolarGlobe3D({
     beaconsRef.current = nextBeacons;
   }, [
     size,
-    centerLat,
-    centerLon,
+    liveCam.lat,
+    liveCam.lon,
     zoom,
     peelPercent,
     subglacialLayerMode,
@@ -647,15 +680,66 @@ export default function PolarGlobe3D({
     locale
   ]);
 
+  // Attach non-passive wheel listener so zoom never triggers React passive-wheel warnings
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    let lastWheelMs = 0;
+
+    const onNativeWheel = (ev: WheelEvent) => {
+      ev.preventDefault();
+      const now = Date.now();
+      if (now - lastWheelMs < 45) return;
+      lastWheelMs = now;
+
+      const curZoom = zoomRef.current;
+      const delta = ev.deltaY < 0 ? 0.5 : -0.5;
+      const nextZoom = Math.max(1, Math.min(6, Math.round((curZoom + delta) * 2) / 2));
+      if (nextZoom !== curZoom) {
+        onCameraChangeRef.current({ zoom: nextZoom });
+      }
+    };
+
+    canvas.addEventListener('wheel', onNativeWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', onNativeWheel);
+  }, []);
+
+  function finishDragGesture(pointerId?: number, el?: HTMLCanvasElement) {
+    if (!dragRef.current.dragging) return;
+    const wasMoved = dragRef.current.moved;
+    dragRef.current.dragging = false;
+
+    if (typeof pointerId === 'number' && el) {
+      try {
+        if (el.hasPointerCapture(pointerId)) {
+          el.releasePointerCapture(pointerId);
+        }
+      } catch {
+        // Ignore synthetic / already-released pointer capture errors
+      }
+    }
+
+    if (wasMoved) {
+      onCameraChange({
+        centerLat: Math.round(liveCamRef.current.lat * 100) / 100,
+        centerLon: Math.round(liveCamRef.current.lon * 100) / 100
+      });
+    }
+  }
+
   function handlePointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Synthetic / touch fallback
+    }
     dragRef.current = {
       dragging: true,
       moved: false,
       startX: e.clientX,
       startY: e.clientY,
-      startLat: centerLat,
-      startLon: centerLon
+      startLat: liveCamRef.current.lat,
+      startLon: liveCamRef.current.lon
     };
   }
 
@@ -670,12 +754,28 @@ export default function PolarGlobe3D({
       if (Math.hypot(dx, dy) > 3) {
         dragRef.current.moved = true;
       }
-      const nextLon = ((dragRef.current.startLon - dx * 0.35 + 540) % 360) - 180;
-      const nextLat = Math.max(-90, Math.min(-30, dragRef.current.startLat + dy * 0.25));
-      onCameraChange({
-        centerLat: Math.round(nextLat * 100) / 100,
-        centerLon: Math.round(nextLon * 100) / 100
-      });
+
+      const nextLon = normalizeLongitudeDeg(dragRef.current.startLon - dx * 0.35);
+      const nextLat = Math.max(
+        -90,
+        Math.min(-30, clampPolarGlobeLatDeg(dragRef.current.startLat + dy * 0.25))
+      );
+      const rounded = {
+        lat: Math.round(nextLat * 100) / 100,
+        lon: Math.round(nextLon * 100) / 100
+      };
+
+      liveCamRef.current = rounded;
+      setLiveCam(rounded);
+
+      const now = Date.now();
+      if (now - lastParentSyncMsRef.current >= 160) {
+        lastParentSyncMsRef.current = now;
+        onCameraChange({
+          centerLat: rounded.lat,
+          centerLon: rounded.lon
+        });
+      }
       return;
     }
 
@@ -688,8 +788,8 @@ export default function PolarGlobe3D({
       const geo = inverseOrtho(
         lx,
         ly,
-        Math.max(-90, Math.min(-25, centerLat)),
-        centerLon,
+        clampPolarGlobeLatDeg(liveCamRef.current.lat),
+        liveCamRef.current.lon,
         radius,
         size.w / 2,
         size.h / 2
@@ -711,7 +811,7 @@ export default function PolarGlobe3D({
   function handlePointerUp(e: React.PointerEvent<HTMLCanvasElement>) {
     if (!dragRef.current.dragging) return;
     const wasMoved = dragRef.current.moved;
-    dragRef.current.dragging = false;
+    finishDragGesture(e.pointerId, e.currentTarget);
 
     if (!wasMoved) {
       const rect = e.currentTarget.getBoundingClientRect();
@@ -724,13 +824,13 @@ export default function PolarGlobe3D({
         const geo = inverseOrtho(
           lx,
           ly,
-          Math.max(-90, Math.min(-25, centerLat)),
-          centerLon,
+          clampPolarGlobeLatDeg(liveCamRef.current.lat),
+          liveCamRef.current.lon,
           radius,
           size.w / 2,
           size.h / 2
         );
-        if (geo && geo.lat <= -55) {
+        if (geo && geo.lat <= -50) {
           onMapClickCoordinate(geo.lat, geo.lon);
         }
         return;
@@ -740,18 +840,14 @@ export default function PolarGlobe3D({
       if (hit) {
         if (hit.kind === 'station') {
           onSelectStation(hit.id);
+          onInspectEntity?.(`station:${hit.id}`, hit.lat, hit.lon);
+        } else if (hit.kind === 'geology') {
+          onInspectEntity?.(`geology:${hit.id}`, hit.lat, hit.lon);
+        } else if (hit.kind === 'hsm') {
+          onInspectEntity?.(`hsm:${hit.id}`, hit.lat, hit.lon);
         }
         onCameraChange({ centerLat: hit.lat, centerLon: hit.lon });
       }
-    }
-  }
-
-  function handleWheel(e: React.WheelEvent<HTMLCanvasElement>) {
-    e.preventDefault();
-    const delta = e.deltaY < 0 ? 0.5 : -0.5;
-    const nextZoom = Math.max(1, Math.min(6, Math.round((zoom + delta) * 2) / 2));
-    if (nextZoom !== zoom) {
-      onCameraChange({ zoom: nextZoom });
     }
   }
 
@@ -762,12 +858,12 @@ export default function PolarGlobe3D({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        onPointerCancel={(e) => finishDragGesture(e.pointerId, e.currentTarget)}
+        onLostPointerCapture={() => finishDragGesture()}
         onPointerLeave={() => {
-          dragRef.current.dragging = false;
           setHoveredBeacon(null);
         }}
-        onWheel={handleWheel}
-        className={`block h-full w-full ${
+        className={`block h-full w-full touch-none ${
           isPickingTransect ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'
         }`}
       />

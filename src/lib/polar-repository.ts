@@ -1,7 +1,9 @@
 /**
- * Repository Data Access Layer (Option A Serverless Edge Baseline -> V2.0 Extensible)
- * Decouples UI & spatial modules from raw HTTP endpoints and static JSON files so V2.0
- * BigQuery / Vertex AI backends can be mounted without refactoring map or i18n components.
+ * Repository Data Access & Client SWR Baseline Cache Layer (V2.0)
+ * - Serves full previous valid time-window snapshot from `localStorage` (or embedded baseline)
+ *   synchronously on frame 0 so 2D/3D canvas & HUD render with zero network blocking.
+ * - Enforces a 15-minute client sync quota window and performs background revalidation
+ *   asynchronously during browser idle time (`requestIdleCallback`).
  */
 
 import {
@@ -17,7 +19,15 @@ import {
   HISTORIC_EXPEDITION_TRACKS,
   SCIENTIFIC_DATA_SOURCES
 } from '@/data/heritage-and-corridors';
+import { POLAR_LANDING_HOTSPOTS } from '@/data/polar-landing-gazetteer';
 import { POLAR_STATIONS } from '@/data/stations';
+import {
+  CLIENT_SYNC_FRESH_WINDOW_MS,
+  CLIENT_TELEMETRY_LKG_KEY,
+  persistTelemetrySnapshot,
+  readCachedOrBaselineTelemetry,
+  type ClientTelemetrySnapshot
+} from './telemetry-client-swr.ts';
 import type {
   ChronicleAct,
   ExpeditionCorridor,
@@ -26,6 +36,7 @@ import type {
   HistoricMonument,
   MarineCorridorTelemetry,
   PolarGeologicalSite,
+  PolarLandingHotspot,
   PolarMacroRegion,
   PolarOutlineDataPack,
   PolarStation,
@@ -33,11 +44,25 @@ import type {
   StationWeatherTelemetry,
   SubglacialBedmapGrid,
   SubglacialTransectPreset
-} from './types';
+} from './types.ts';
+
+export {
+  CLIENT_SYNC_FRESH_WINDOW_MS,
+  CLIENT_TELEMETRY_LKG_KEY,
+  persistTelemetrySnapshot,
+  readCachedOrBaselineTelemetry,
+  type ClientTelemetrySnapshot
+};
+
+let inMemoryGeoCache: {
+  outlinePack?: PolarOutlineDataPack;
+  bedmapGrid?: SubglacialBedmapGrid;
+} = {};
 
 export interface PolarRepository {
   getStations(): PolarStation[];
   getStationById(id: string): PolarStation | undefined;
+  getLandingHotspots(): PolarLandingHotspot[];
   getExpeditionCorridors(): ExpeditionCorridor[];
   getDefaultCorridor(): ExpeditionCorridor;
   getHistoricMonuments(): HistoricMonument[];
@@ -48,6 +73,15 @@ export interface PolarRepository {
   getGazetteerEntries(): GazetteerEntry[];
   getTransectPresets(): SubglacialTransectPreset[];
   getScientificSources(): typeof SCIENTIFIC_DATA_SOURCES;
+  getInitialTelemetrySnapshot(): {
+    snapshot: ClientTelemetrySnapshot;
+    needsBackgroundSync: boolean;
+  };
+  syncTelemetryInBackground(options?: {
+    force?: boolean;
+    signal?: AbortSignal;
+    currentSnapshot?: ClientTelemetrySnapshot;
+  }): Promise<ClientTelemetrySnapshot>;
   fetchStationWeather(signal?: AbortSignal): Promise<StationWeatherTelemetry[]>;
   fetchMarineTelemetry(signal?: AbortSignal): Promise<MarineCorridorTelemetry[]>;
   fetchSeaIceSummary(signal?: AbortSignal): Promise<SeaIceSummaryPayload>;
@@ -62,6 +96,10 @@ export const polarRepository: PolarRepository = {
 
   getStationById(id: string) {
     return POLAR_STATIONS.find((s) => s.id === id);
+  },
+
+  getLandingHotspots() {
+    return POLAR_LANDING_HOTSPOTS;
   },
 
   getExpeditionCorridors() {
@@ -106,6 +144,59 @@ export const polarRepository: PolarRepository = {
     return SCIENTIFIC_DATA_SOURCES;
   },
 
+  getInitialTelemetrySnapshot() {
+    return readCachedOrBaselineTelemetry();
+  },
+
+  async syncTelemetryInBackground(options = {}) {
+    const initial = readCachedOrBaselineTelemetry();
+    const base = options.currentSnapshot ?? initial.snapshot;
+
+    if (!options.force && !initial.needsBackgroundSync) {
+      return base;
+    }
+
+    // Yield to main UI thread / idle callback first so 3D/2D canvas frames never stutter
+    await new Promise<void>((resolve) => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        (
+          window as Window & {
+            requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number;
+          }
+        ).requestIdleCallback(() => resolve(), { timeout: 600 });
+      } else {
+        setTimeout(resolve, 120);
+      }
+    });
+
+    if (options.signal?.aborted) {
+      return base;
+    }
+
+    const [weatherRes, marineRes, iceRes] = await Promise.allSettled([
+      polarRepository.fetchStationWeather(options.signal),
+      polarRepository.fetchMarineTelemetry(options.signal),
+      polarRepository.fetchSeaIceSummary(options.signal)
+    ]);
+
+    const merged: ClientTelemetrySnapshot = {
+      weatherList:
+        weatherRes.status === 'fulfilled' && weatherRes.value.length > 0
+          ? weatherRes.value
+          : base.weatherList,
+      marineList:
+        marineRes.status === 'fulfilled' && marineRes.value.length > 0
+          ? marineRes.value
+          : base.marineList,
+      seaIce: iceRes.status === 'fulfilled' ? iceRes.value : base.seaIce,
+      syncedAtMs: Date.now(),
+      source: 'live-async-sync'
+    };
+
+    persistTelemetrySnapshot(merged);
+    return merged;
+  },
+
   async fetchStationWeather(signal?: AbortSignal) {
     const res = await fetch('/api/weather', { signal });
     if (!res.ok) {
@@ -133,18 +224,28 @@ export const polarRepository: PolarRepository = {
   },
 
   async fetchPolarOutlinePack(signal?: AbortSignal) {
+    if (inMemoryGeoCache.outlinePack) {
+      return inMemoryGeoCache.outlinePack;
+    }
     const res = await fetch('/geo-data/antarctica-outline-epsg3031.json', { signal });
     if (!res.ok) {
       throw new Error(`Failed to load EPSG:3031 polar outline pack (${res.status})`);
     }
-    return (await res.json()) as PolarOutlineDataPack;
+    const data = (await res.json()) as PolarOutlineDataPack;
+    inMemoryGeoCache = { ...inMemoryGeoCache, outlinePack: data };
+    return data;
   },
 
   async fetchSubglacialBedmapGrid(signal?: AbortSignal) {
+    if (inMemoryGeoCache.bedmapGrid) {
+      return inMemoryGeoCache.bedmapGrid;
+    }
     const res = await fetch('/geo-data/subglacial-bedmap-grid.json', { signal });
     if (!res.ok) {
       throw new Error(`Failed to load Bedmap3 subglacial grid (${res.status})`);
     }
-    return (await res.json()) as SubglacialBedmapGrid;
+    const data = (await res.json()) as SubglacialBedmapGrid;
+    inMemoryGeoCache = { ...inMemoryGeoCache, bedmapGrid: data };
+    return data;
   }
 };

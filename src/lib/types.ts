@@ -289,9 +289,25 @@ export interface HistoricTrackRenderLayer {
   };
 }
 
+export type AtlasTabId = 'overview' | 'weather' | 'geology' | 'planner';
+
+export type BottomDockMode = 'closed' | 'subglacial-transect' | 'hiking-profile';
+
+export type DrillDownEntityType =
+  | 'station'
+  | 'geology'
+  | 'hsm'
+  | 'gazetteer'
+  | 'landing'
+  | 'waypoint';
+
 export interface AtlasUrlState {
   mode: MapViewMode;
   units: UnitSystem;
+  tab: AtlasTabId;
+  region: AntarcticRegionId | 'all';
+  inspect: string | null;
+  dock: BottomDockMode;
   corridor: string;
   station: string;
   peel: number;
@@ -299,4 +315,173 @@ export interface AtlasUrlState {
   centerLon: number;
   zoom: number;
   transect: string;
+}
+
+export type PolarLandingTerrainType =
+  | 'pebble-ash-beach'
+  | 'snow-ridge-hike'
+  | 'glacier-crevasse-zone'
+  | 'sheltered-cove-zodiac'
+  | 'inland-blue-ice';
+
+export interface PolarLandingHotspot {
+  id: string;
+  region: AntarcticRegionId;
+  lat: number;
+  lon: number;
+  typicalElevationGainM: number;
+  typicalMaxSlopeDeg: number;
+  terrainType: PolarLandingTerrainType;
+  aliases: string[];
+  name: LocalizedText;
+  summary: LocalizedText;
+  highlight: LocalizedText;
+  sourceUrl: string;
+}
+
+export type ItineraryImportSourceType =
+  | 'gpx'
+  | 'geojson'
+  | 'kml'
+  | 'csv'
+  | 'text'
+  | 'preset'
+  | 'manual';
+
+export type ItineraryActivityType =
+  | 'cruise'
+  | 'zodiac-landing'
+  | 'hiking'
+  | 'camping'
+  | 'flight';
+
+export interface UserItineraryWaypoint {
+  id: string;
+  dayNumber?: number;
+  plannedDate?: string;
+  name: string;
+  lat: number;
+  lon: number;
+  elevationM?: number;
+  activityType: ItineraryActivityType;
+  plannedHours?: number;
+  notes?: string;
+  matchedGazetteerId?: string;
+}
+
+export type PolarHikingDifficultyTier = 1 | 2 | 3 | 4 | 5;
+
+export interface HikingProfileSample {
+  distanceKm: number;
+  lat: number;
+  lon: number;
+  elevationM: number;
+  slopeDeg: number;
+  windChillC: number;
+  gustKmh: number;
+  difficultyTier: PolarHikingDifficultyTier;
+}
+
+export interface NearbySpatialAnchor {
+  id: string;
+  anchorType: 'station' | 'geology' | 'hsm' | 'landing';
+  code?: string;
+  distanceKm: number;
+  lat: number;
+  lon: number;
+  name: LocalizedText;
+}
+
+export interface SegmentAdvisoryReport {
+  segmentIndex: number;
+  waypointId: string;
+  title: string;
+  lat: number;
+  lon: number;
+  plannedDate: string;
+  activityType: ItineraryActivityType;
+  legDistanceKm: number;
+  elevationGainM: number;
+  maxElevationM: number;
+  maxSlopeDeg: number;
+  surfaceType:
+    | 'coastal-rock-ash'
+    | 'grounded-ice-sheet'
+    | 'floating-ice-shelf'
+    | 'open-water';
+  weatherSourceMode: 'live-forecast' | 'seasonal-climatology';
+  expectedTempC: number;
+  expectedWindChillC: number;
+  expectedGustKmh: number;
+  katabaticTier: 'nominal' | 'watch' | 'severe';
+  waveHeightM?: number;
+  drakeTier?: 1 | 2 | 3 | 4 | 5;
+  daylightHours: number;
+  solarRegime: 'polar-day' | 'polar-night' | 'diurnal';
+  hikingDifficultyTier: PolarHikingDifficultyTier;
+  compositeRiskScore: number;
+  gearKeys: string[];
+  hackKeys: string[];
+  nearbyAnchors: NearbySpatialAnchor[];
+}
+
+export interface ItineraryEvaluationResult {
+  evaluatedAtIso: string;
+  simulateLiveNow: boolean;
+  overallDifficultyTier: PolarHikingDifficultyTier;
+  totalDistanceKm: number;
+  totalElevationGainM: number;
+  minWindChillC: number;
+  maxGustKmh: number;
+  peakWaveM: number;
+  meanDaylightHours: number;
+  recommendedGearKeys: string[];
+  topPolarHackKeys: string[];
+  segments: SegmentAdvisoryReport[];
+  profileSamples: HikingProfileSample[];
+}
+
+export interface SavedUserItinerary {
+  id: string;
+  userId: string;
+  title: string;
+  notes: string;
+  shareSlug: string;
+  isPublic: boolean;
+  sourceType: ItineraryImportSourceType;
+  startDate: string | null;
+  endDate: string | null;
+  overallDifficulty: PolarHikingDifficultyTier;
+  totalDistanceKm: number;
+  waypoints: UserItineraryWaypoint[];
+  advisory: ItineraryEvaluationResult | null;
+  createdAtIso: string;
+  updatedAtIso: string;
+}
+
+export interface AuthenticatedUser {
+  id: string;
+  email: string;
+  displayName: string;
+  role: 'user' | 'admin';
+  preferredLocale: SupportedLocale;
+  preferredUnits: UnitSystem;
+  preferredMode: MapViewMode;
+  bookmarkedIds: string[];
+  createdAtIso: string;
+}
+
+export interface TelemetryEventInput {
+  sessionKey: string;
+  locale: SupportedLocale;
+  eventCategory: 'navigation' | 'drilldown' | 'canvas' | 'planner' | 'auth';
+  eventName: string;
+  activeTab?: AtlasTabId;
+  drilldownLevel?: 1 | 2 | 3;
+  targetType?: string;
+  targetId?: string;
+  dwellMs?: number;
+  lat?: number;
+  lon?: number;
+  properties?: Record<string, string | number | boolean | null>;
 }

@@ -35,3 +35,7 @@ next-env.d.ts
 __pycache__/
 *.py[cod]
 .venv/
+
+# local zero-config dev store (used only when DATABASE_URL is unset)
+.local-dev-store.json
+
