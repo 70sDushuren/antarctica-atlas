@@ -5,6 +5,12 @@
  */
 
 import {
+  POLAR_GEOLOGICAL_SITES,
+  POLAR_MACRO_REGIONS,
+  SCAR_CGA_GAZETTEER,
+  SUBGLACIAL_TRANSECT_PRESETS
+} from '@/data/geology-and-gazetteer';
+import {
   EXPEDITION_CORRIDORS,
   FEATURED_HISTORIC_MONUMENTS,
   SCIENTIFIC_DATA_SOURCES
@@ -12,13 +18,17 @@ import {
 import { POLAR_STATIONS } from '@/data/stations';
 import type {
   ExpeditionCorridor,
+  GazetteerEntry,
   HistoricMonument,
   MarineCorridorTelemetry,
+  PolarGeologicalSite,
+  PolarMacroRegion,
   PolarOutlineDataPack,
   PolarStation,
   SeaIceSummaryPayload,
   StationWeatherTelemetry,
-  SubglacialBedmapGrid
+  SubglacialBedmapGrid,
+  SubglacialTransectPreset
 } from './types';
 
 export interface PolarRepository {
@@ -27,6 +37,10 @@ export interface PolarRepository {
   getExpeditionCorridors(): ExpeditionCorridor[];
   getDefaultCorridor(): ExpeditionCorridor;
   getHistoricMonuments(): HistoricMonument[];
+  getGeologicalSites(): PolarGeologicalSite[];
+  getMacroRegions(): PolarMacroRegion[];
+  getGazetteerEntries(): GazetteerEntry[];
+  getTransectPresets(): SubglacialTransectPreset[];
   getScientificSources(): typeof SCIENTIFIC_DATA_SOURCES;
   fetchStationWeather(signal?: AbortSignal): Promise<StationWeatherTelemetry[]>;
   fetchMarineTelemetry(signal?: AbortSignal): Promise<MarineCorridorTelemetry[]>;
@@ -56,6 +70,22 @@ export const polarRepository: PolarRepository = {
 
   getHistoricMonuments() {
     return FEATURED_HISTORIC_MONUMENTS;
+  },
+
+  getGeologicalSites() {
+    return POLAR_GEOLOGICAL_SITES;
+  },
+
+  getMacroRegions() {
+    return POLAR_MACRO_REGIONS;
+  },
+
+  getGazetteerEntries() {
+    return SCAR_CGA_GAZETTEER;
+  },
+
+  getTransectPresets() {
+    return SUBGLACIAL_TRANSECT_PRESETS;
   },
 
   getScientificSources() {

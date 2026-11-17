@@ -114,6 +114,19 @@ describe('Subglacial Bedmap3 Cross-Section Bilinear Interpolation', () => {
     assert.ok(eastEnd.surfaceElevationM > 2500);
     assert.ok(eastEnd.bedElevationM > 0);
   });
+
+  it('executes 180-point continental cross-section profiling well under the 100ms Phase 2 SLA', () => {
+    const t0 = performance.now();
+    const samples = sampleSubglacialTransect(
+      grid,
+      { lat: -75.1, lon: -106.7 },
+      { lat: -77.85, lon: 166.67 },
+      180
+    );
+    const elapsedMs = performance.now() - t0;
+    assert.equal(samples.length, 180);
+    assert.ok(elapsedMs < 50, `Transect interpolation took ${elapsedMs.toFixed(2)}ms (expected < 50ms)`);
+  });
 });
 
 describe('Polar Meteorology, Drake Sea-State & Locale Unit Formatting', () => {

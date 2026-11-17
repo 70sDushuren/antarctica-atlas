@@ -1,21 +1,22 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Compass, Layers, Sun } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { SupportedLocale } from '@/i18n/routing';
 import { wgs84ToEpsg3031 } from '@/lib/polar-math';
-import { polarRepository } from '@/lib/polar-repository';
 import type {
   AtlasUrlState,
   ExpeditionCorridor,
   HistoricMonument,
   PolarBaseLayer,
+  PolarGeologicalSite,
   PolarOutlineDataPack,
   PolarStation,
   StationWeatherTelemetry,
-  SubglacialBedmapGrid
+  SubglacialBedmapGrid,
+  SubglacialLayerMode
 } from '@/lib/types';
 
 const PolarGlobe3D = dynamic(() => import('./PolarGlobe3D'), {
@@ -29,25 +30,40 @@ const PolarMap2DEpsg3031 = dynamic(() => import('./PolarMap2DEpsg3031'), {
 export interface DualModeAtlasCanvasProps {
   locale: SupportedLocale;
   atlasState: AtlasUrlState;
+  subglacialLayerMode: SubglacialLayerMode;
+  outlinePack: PolarOutlineDataPack | null;
+  bedmapGrid: SubglacialBedmapGrid | null;
   stations: PolarStation[];
   weatherList: StationWeatherTelemetry[];
   monuments: HistoricMonument[];
+  geologicalSites: PolarGeologicalSite[];
   activeCorridor: ExpeditionCorridor;
+  transectEndpoints: {
+    pointA: { lat: number; lon: number };
+    pointB: { lat: number; lon: number };
+  };
+  isPickingTransect: boolean;
+  onMapClickCoordinate?: (lat: number, lon: number) => void;
   onUpdateState: (patch: Partial<AtlasUrlState>) => void;
 }
 
 export function DualModeAtlasCanvas({
   locale,
   atlasState,
+  subglacialLayerMode,
+  outlinePack,
+  bedmapGrid,
   stations,
   weatherList,
   monuments,
+  geologicalSites,
   activeCorridor,
+  transectEndpoints,
+  isPickingTransect,
+  onMapClickCoordinate,
   onUpdateState
 }: DualModeAtlasCanvasProps) {
   const tCanvas = useTranslations('canvas');
-  const [outlinePack, setOutlinePack] = useState<PolarOutlineDataPack | null>(null);
-  const [bedmapGrid, setBedmapGrid] = useState<SubglacialBedmapGrid | null>(null);
   const [baseLayer, setBaseLayer] = useState<PolarBaseLayer>('gibs-bluemarble');
   const [showSolarTerminator, setShowSolarTerminator] = useState<boolean>(true);
   const [cursorCoords, setCursorCoords] = useState<{
@@ -56,19 +72,6 @@ export function DualModeAtlasCanvas({
     xKm: number;
     yKm: number;
   } | null>(null);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    polarRepository
-      .fetchPolarOutlinePack(controller.signal)
-      .then(setOutlinePack)
-      .catch(() => {});
-    polarRepository
-      .fetchSubglacialBedmapGrid(controller.signal)
-      .then(setBedmapGrid)
-      .catch(() => {});
-    return () => controller.abort();
-  }, []);
 
   const weatherByStation = useMemo(() => {
     const map: Record<string, StationWeatherTelemetry> = {};
@@ -168,7 +171,11 @@ export function DualModeAtlasCanvas({
       </div>
 
       {/* Main Spatial Canvas Viewport */}
-      <div className="relative h-[430px] md:h-[470px] w-full overflow-hidden rounded-xl border border-sky-400/20">
+      <div
+        className={`relative h-[430px] md:h-[470px] w-full overflow-hidden rounded-xl border ${
+          isPickingTransect ? 'border-fuchsia-400 ring-2 ring-fuchsia-400/35' : 'border-sky-400/20'
+        }`}
+      >
         {atlasState.mode === '3d' ? (
           <PolarGlobe3D
             locale={locale}
@@ -176,6 +183,7 @@ export function DualModeAtlasCanvas({
             centerLon={atlasState.centerLon}
             zoom={atlasState.zoom}
             peelPercent={atlasState.peel}
+            subglacialLayerMode={subglacialLayerMode}
             showSolarTerminator={showSolarTerminator}
             outlinePack={outlinePack}
             bedmapGrid={bedmapGrid}
@@ -183,7 +191,11 @@ export function DualModeAtlasCanvas({
             weatherByStation={weatherByStation}
             selectedStationId={atlasState.station}
             monuments={monuments}
+            geologicalSites={geologicalSites}
             activeCorridor={activeCorridor}
+            transectEndpoints={transectEndpoints}
+            isPickingTransect={isPickingTransect}
+            onMapClickCoordinate={onMapClickCoordinate}
             onCameraChange={(patch) => onUpdateState(patch)}
             onSelectStation={(stationId) => onUpdateState({ station: stationId })}
             onCursorMove={setCursorCoords}
@@ -195,6 +207,7 @@ export function DualModeAtlasCanvas({
             centerLon={atlasState.centerLon}
             zoom={atlasState.zoom}
             peelPercent={atlasState.peel}
+            subglacialLayerMode={subglacialLayerMode}
             baseLayer={baseLayer}
             showSolarTerminator={showSolarTerminator}
             outlinePack={outlinePack}
@@ -203,7 +216,11 @@ export function DualModeAtlasCanvas({
             weatherByStation={weatherByStation}
             selectedStationId={atlasState.station}
             monuments={monuments}
+            geologicalSites={geologicalSites}
             activeCorridor={activeCorridor}
+            transectEndpoints={transectEndpoints}
+            isPickingTransect={isPickingTransect}
+            onMapClickCoordinate={onMapClickCoordinate}
             onCameraChange={(patch) => onUpdateState(patch)}
             onSelectStation={(stationId) => onUpdateState({ station: stationId })}
             onCursorMove={setCursorCoords}

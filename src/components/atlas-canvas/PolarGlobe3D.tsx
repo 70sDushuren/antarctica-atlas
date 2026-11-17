@@ -5,15 +5,18 @@ import type { SupportedLocale } from '@/i18n/routing';
 import {
   computeSubsolarPoint,
   densifyGreatCircle,
+  epsg3031ToWgs84,
   wgs84ToEpsg3031
 } from '@/lib/polar-math';
 import type {
   ExpeditionCorridor,
   HistoricMonument,
+  PolarGeologicalSite,
   PolarOutlineDataPack,
   PolarStation,
   StationWeatherTelemetry,
-  SubglacialBedmapGrid
+  SubglacialBedmapGrid,
+  SubglacialLayerMode
 } from '@/lib/types';
 
 export interface PolarGlobe3DProps {
@@ -22,6 +25,7 @@ export interface PolarGlobe3DProps {
   centerLon: number;
   zoom: number;
   peelPercent: number;
+  subglacialLayerMode: SubglacialLayerMode;
   showSolarTerminator: boolean;
   outlinePack: PolarOutlineDataPack | null;
   bedmapGrid: SubglacialBedmapGrid | null;
@@ -29,7 +33,14 @@ export interface PolarGlobe3DProps {
   weatherByStation: Record<string, StationWeatherTelemetry>;
   selectedStationId: string;
   monuments: HistoricMonument[];
+  geologicalSites: PolarGeologicalSite[];
   activeCorridor: ExpeditionCorridor;
+  transectEndpoints: {
+    pointA: { lat: number; lon: number };
+    pointB: { lat: number; lon: number };
+  };
+  isPickingTransect: boolean;
+  onMapClickCoordinate?: (lat: number, lon: number) => void;
   onCameraChange: (patch: { centerLat?: number; centerLon?: number; zoom?: number }) => void;
   onSelectStation: (stationId: string) => void;
   onCursorMove?: (coords: { lat: number; lon: number; xKm: number; yKm: number } | null) => void;
@@ -37,7 +48,7 @@ export interface PolarGlobe3DProps {
 
 interface ScreenBeacon {
   id: string;
-  kind: 'station' | 'hsm';
+  kind: 'station' | 'hsm' | 'geology';
   x: number;
   y: number;
   label: string;
@@ -115,11 +126,28 @@ function inverseOrtho(
   };
 }
 
-function bedElevationColor(bedM: number, alpha: number): string {
-  if (bedM < -1200) return `rgba(99, 102, 241, ${alpha})`; // Deep Bentley / marine trench
-  if (bedM < 0) return `rgba(14, 165, 233, ${alpha})`; // Marine-grounded basin
-  if (bedM < 900) return `rgba(16, 185, 129, ${alpha})`; // Continental craton lowland
-  return `rgba(245, 158, 11, ${alpha})`; // Gamburtsev / Transantarctic subglacial peaks
+function getSubglacialCellColor(
+  tuple: [number, number, number],
+  mode: SubglacialLayerMode,
+  alpha: number
+): string {
+  const [surfM, bedM, thickM] = tuple;
+  if (mode === 'thickness') {
+    if (thickM >= 3200) return `rgba(168, 85, 247, ${alpha})`;
+    if (thickM >= 2000) return `rgba(59, 130, 246, ${alpha})`;
+    if (thickM >= 900) return `rgba(56, 189, 248, ${alpha})`;
+    return `rgba(186, 230, 253, ${alpha})`;
+  }
+  if (mode === 'surface') {
+    if (surfM >= 3200) return `rgba(248, 250, 252, ${alpha})`;
+    if (surfM >= 2000) return `rgba(186, 230, 253, ${alpha})`;
+    if (surfM >= 800) return `rgba(56, 189, 248, ${alpha})`;
+    return `rgba(14, 116, 144, ${alpha})`;
+  }
+  if (bedM < -1200) return `rgba(99, 102, 241, ${alpha})`;
+  if (bedM < 0) return `rgba(14, 165, 233, ${alpha})`;
+  if (bedM < 900) return `rgba(16, 185, 129, ${alpha})`;
+  return `rgba(245, 158, 11, ${alpha})`;
 }
 
 export default function PolarGlobe3D({
@@ -128,6 +156,7 @@ export default function PolarGlobe3D({
   centerLon,
   zoom,
   peelPercent,
+  subglacialLayerMode,
   showSolarTerminator,
   outlinePack,
   bedmapGrid,
@@ -135,7 +164,11 @@ export default function PolarGlobe3D({
   weatherByStation,
   selectedStationId,
   monuments,
+  geologicalSites,
   activeCorridor,
+  transectEndpoints,
+  isPickingTransect,
+  onMapClickCoordinate,
   onCameraChange,
   onSelectStation,
   onCursorMove
@@ -162,7 +195,6 @@ export default function PolarGlobe3D({
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 760, h: 480 });
   const [hoveredBeacon, setHoveredBeacon] = useState<ScreenBeacon | null>(null);
 
-  // Pre-densify corridor great-circle track so ±180° Ross Sea and Drake crossings never wrap
   const corridorArcPoints = useMemo(() => {
     const pts: Array<{ lat: number; lon: number }> = [];
     for (let i = 0; i < activeCorridor.waypoints.length - 1; i++) {
@@ -175,7 +207,23 @@ export default function PolarGlobe3D({
     return pts;
   }, [activeCorridor]);
 
-  // Observe container dimensions
+  // Densify planar EPSG:3031 transect so the 3D globe shows the exact planar geodesic slice
+  const transectArcPoints = useMemo(() => {
+    const pA = wgs84ToEpsg3031(transectEndpoints.pointA.lat, transectEndpoints.pointA.lon);
+    const pB = wgs84ToEpsg3031(transectEndpoints.pointB.lat, transectEndpoints.pointB.lon);
+    const pts: Array<{ lat: number; lon: number }> = [];
+    const steps = 48;
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const geo = epsg3031ToWgs84(
+        pA.x + (pB.x - pA.x) * t,
+        pA.y + (pB.y - pA.y) * t
+      );
+      pts.push(geo);
+    }
+    return pts;
+  }, [transectEndpoints]);
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -191,7 +239,6 @@ export default function PolarGlobe3D({
     return () => ro.disconnect();
   }, []);
 
-  // Main 3D Polar Globe render pass
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -212,7 +259,6 @@ export default function PolarGlobe3D({
     const camLat = Math.max(-90, Math.min(-25, centerLat));
     const camLon = centerLon;
 
-    // 1. Deep polar night space backdrop
     ctx.clearRect(0, 0, size.w, size.h);
     const spaceGrad = ctx.createRadialGradient(cx, cy, radius * 0.25, cx, cy, Math.max(size.w, size.h) * 0.75);
     spaceGrad.addColorStop(0, '#0b223d');
@@ -221,7 +267,6 @@ export default function PolarGlobe3D({
     ctx.fillStyle = spaceGrad;
     ctx.fillRect(0, 0, size.w, size.h);
 
-    // Atmospheric cryo-halo
     const haloGrad = ctx.createRadialGradient(cx, cy, radius * 0.94, cx, cy, radius * 1.14);
     haloGrad.addColorStop(0, 'rgba(56, 189, 248, 0.26)');
     haloGrad.addColorStop(0.5, 'rgba(14, 165, 233, 0.08)');
@@ -231,7 +276,6 @@ export default function PolarGlobe3D({
     ctx.arc(cx, cy, radius * 1.14, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Southern Ocean sphere body
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
@@ -251,7 +295,6 @@ export default function PolarGlobe3D({
     ctx.fillStyle = oceanGrad;
     ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
 
-    // Helper to draw clipped spherical rings/polygons
     const drawSpherePath = (
       coords: Array<{ lat: number; lon: number }>,
       closeRing: boolean
@@ -274,7 +317,6 @@ export default function PolarGlobe3D({
       if (closeRing && started) ctx.closePath();
     };
 
-    // 3. Southern Hemisphere Gateways (South America, NZ, Tasmania)
     if (outlinePack?.southernGateways) {
       ctx.fillStyle = 'rgba(51, 83, 108, 0.65)';
       ctx.strokeStyle = 'rgba(125, 211, 252, 0.45)';
@@ -286,9 +328,8 @@ export default function PolarGlobe3D({
       }
     }
 
-    // 4. Antarctic Continent & Floating Ice Shelves
     if (outlinePack) {
-      const iceAlpha = Math.max(0.22, 1 - (peelPercent / 100) * 0.72);
+      const iceAlpha = Math.max(0.2, 1 - (peelPercent / 100) * 0.74);
       ctx.fillStyle = `rgba(224, 242, 254, ${iceAlpha})`;
       ctx.strokeStyle = 'rgba(125, 211, 252, 0.9)';
       ctx.lineWidth = 1.5;
@@ -297,7 +338,7 @@ export default function PolarGlobe3D({
       ctx.stroke();
 
       if (outlinePack.iceShelves) {
-        ctx.fillStyle = `rgba(125, 211, 252, ${Math.max(0.18, iceAlpha * 0.55)})`;
+        ctx.fillStyle = `rgba(125, 211, 252, ${Math.max(0.16, iceAlpha * 0.55)})`;
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.75)';
         ctx.lineWidth = 1;
         for (const shelf of outlinePack.iceShelves) {
@@ -308,27 +349,24 @@ export default function PolarGlobe3D({
       }
     }
 
-    // 5. Bedmap3 Subglacial Bedrock Relief Overlay (when Ice-Peel > 0%)
+    // Subglacial Bedmap3 57x57 Grid Visualization (stride by 2 on 3D canvas for 60fps smoothness)
     if (bedmapGrid && peelPercent > 0) {
-      const alpha = Math.min(0.82, (peelPercent / 100) * 0.85);
+      const alpha = Math.min(0.84, (peelPercent / 100) * 0.88);
       const { min, step } = bedmapGrid.gridBoundsKm;
-      const dotR = Math.max(2.5, radius * 0.024);
+      const dotR = Math.max(2.2, radius * 0.019);
 
-      for (let r = 0; r < bedmapGrid.rows.length; r++) {
+      for (let r = 0; r < bedmapGrid.rows.length; r += 2) {
         const yKm = min + r * step;
-        for (let c = 0; c < bedmapGrid.rows[r].length; c++) {
+        for (let c = 0; c < bedmapGrid.rows[r].length; c += 2) {
           const xKm = min + c * step;
           if (Math.hypot(xKm, yKm) > 2500) continue;
-          const [surfM, bedM] = bedmapGrid.rows[r][c];
-          if (surfM <= 0) continue;
+          const tuple = bedmapGrid.rows[r][c];
+          if (tuple[0] <= 0) continue;
 
-          // Approximate inverse lat/lon from planar km for fast 3D rendering
-          const rho = Math.hypot(xKm, yKm) * 1000;
-          const latApprox = rho < 1 ? -90 : -90 + (rho / 111_320);
-          const lonApprox = (Math.atan2(xKm, yKm) * 180) / Math.PI;
-          const p = projectOrtho(latApprox, lonApprox, camLat, camLon, radius, cx, cy);
+          const geo = epsg3031ToWgs84(xKm * 1000, yKm * 1000);
+          const p = projectOrtho(geo.lat, geo.lon, camLat, camLon, radius, cx, cy);
           if (p.cosC > 0.02) {
-            ctx.fillStyle = bedElevationColor(bedM, alpha);
+            ctx.fillStyle = getSubglacialCellColor(tuple, subglacialLayerMode, alpha);
             ctx.beginPath();
             ctx.arc(p.x, p.y, dotR, 0, Math.PI * 2);
             ctx.fill();
@@ -337,7 +375,7 @@ export default function PolarGlobe3D({
       }
     }
 
-    // 6. Polar Spherical Graticules (Parallels & Meridians)
+    // Graticule rings
     for (const latRing of [-30, -45, -60, -66.563, -75, -85]) {
       const ringPts: Array<{ lat: number; lon: number }> = [];
       for (let lon = -180; lon <= 180; lon += 4) {
@@ -375,7 +413,6 @@ export default function PolarGlobe3D({
       ctx.stroke();
     }
 
-    // 7. Live Solar Terminator & Night Hemisphere Shading
     if (showSolarTerminator) {
       const { declinationDeg, subsolarLonDeg } = computeSubsolarPoint();
       const decRad = (declinationDeg * Math.PI) / 180;
@@ -386,7 +423,6 @@ export default function PolarGlobe3D({
         Math.sin(decRad)
       ];
 
-      // Sample low-res illumination grid on visible globe disc
       const stepPx = 14;
       for (let py = cy - radius; py <= cy + radius; py += stepPx) {
         for (let px = cx - radius; px <= cx + radius; px += stepPx) {
@@ -408,39 +444,83 @@ export default function PolarGlobe3D({
       }
     }
 
-    // 8. Active Expedition Corridor Great-Circle Track
+    // Active Expedition Corridor Track
     if (corridorArcPoints.length > 1) {
       ctx.save();
-      ctx.strokeStyle = 'rgba(251, 191, 36, 0.92)';
-      ctx.lineWidth = 2.4;
-      ctx.shadowColor = 'rgba(245, 158, 11, 0.65)';
-      ctx.shadowBlur = 8;
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.9)';
+      ctx.lineWidth = 2.2;
       drawSpherePath(corridorArcPoints, false);
       ctx.stroke();
       ctx.restore();
+    }
 
-      for (const wp of activeCorridor.waypoints) {
-        const p = projectOrtho(wp.lat, wp.lon, camLat, camLon, radius, cx, cy);
+    // Active Bedmap3 Cross-Section Transect Line (A -> B)
+    if (transectArcPoints.length > 1) {
+      ctx.save();
+      ctx.strokeStyle = '#e879f9';
+      ctx.lineWidth = 2.4;
+      ctx.setLineDash([6, 4]);
+      drawSpherePath(transectArcPoints, false);
+      ctx.stroke();
+      ctx.restore();
+
+      const endpoints: Array<[string, { lat: number; lon: number }]> = [
+        ['A', transectEndpoints.pointA],
+        ['B', transectEndpoints.pointB]
+      ];
+      for (const [tag, pt] of endpoints) {
+        const p = projectOrtho(pt.lat, pt.lon, camLat, camLon, radius, cx, cy);
         if (p.cosC > 0) {
-          ctx.fillStyle = '#fbbf24';
+          ctx.fillStyle = '#e879f9';
+          ctx.strokeStyle = '#0f172a';
+          ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, 3.6, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
           ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#0f172a';
+          ctx.font = '700 9px system-ui, sans-serif';
+          ctx.fillText(tag, p.x - 3, p.y + 3);
         }
       }
     }
 
-    ctx.restore(); // End sphere clip
+    ctx.restore();
 
-    // Outer sphere rim stroke
     ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.stroke();
 
-    // 9. Interactive Beacons: HSM Monuments & 18 Polar Stations
+    // Beacons: Geological Sites, HSM Monuments & 18 Polar Stations
     const nextBeacons: ScreenBeacon[] = [];
+
+    for (const geoSite of geologicalSites) {
+      const p = projectOrtho(geoSite.lat, geoSite.lon, camLat, camLon, radius, cx, cy);
+      if (p.cosC <= 0.02) continue;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y - 5.5);
+      ctx.lineTo(p.x + 5, p.y + 4.5);
+      ctx.lineTo(p.x - 5, p.y + 4.5);
+      ctx.closePath();
+      ctx.fillStyle = geoSite.category === 'volcano' ? '#f43f5e' : '#c084fc';
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 1.2;
+      ctx.fill();
+      ctx.stroke();
+
+      nextBeacons.push({
+        id: geoSite.id,
+        kind: 'geology',
+        x: p.x,
+        y: p.y,
+        label: geoSite.name[locale],
+        sublabel: `${geoSite.rockOrFeatureType[locale]}`,
+        lat: geoSite.lat,
+        lon: geoSite.lon
+      });
+    }
 
     for (const hsm of monuments) {
       const p = projectOrtho(hsm.lat, hsm.lon, camLat, camLon, radius, cx, cy);
@@ -516,6 +596,7 @@ export default function PolarGlobe3D({
     centerLon,
     zoom,
     peelPercent,
+    subglacialLayerMode,
     showSolarTerminator,
     outlinePack,
     bedmapGrid,
@@ -523,8 +604,10 @@ export default function PolarGlobe3D({
     weatherByStation,
     selectedStationId,
     monuments,
-    activeCorridor,
+    geologicalSites,
     corridorArcPoints,
+    transectArcPoints,
+    transectEndpoints,
     locale
   ]);
 
@@ -560,15 +643,21 @@ export default function PolarGlobe3D({
       return;
     }
 
-    // Hit-test beacons
     const hit = beaconsRef.current.find((b) => Math.hypot(b.x - lx, b.y - ly) <= 10) ?? null;
     setHoveredBeacon(hit);
 
-    // Cursor EPSG:3031 readout
     if (onCursorMove) {
       const baseRadius = Math.min(size.w, size.h) * 0.41;
       const radius = baseRadius * (0.78 + Math.max(0, Math.min(8, zoom)) * 0.16);
-      const geo = inverseOrtho(lx, ly, Math.max(-90, Math.min(-25, centerLat)), centerLon, radius, size.w / 2, size.h / 2);
+      const geo = inverseOrtho(
+        lx,
+        ly,
+        Math.max(-90, Math.min(-25, centerLat)),
+        centerLon,
+        radius,
+        size.w / 2,
+        size.h / 2
+      );
       if (geo && geo.lat <= -50) {
         const xy = wgs84ToEpsg3031(geo.lat, geo.lon);
         onCursorMove({
@@ -592,6 +681,25 @@ export default function PolarGlobe3D({
       const rect = e.currentTarget.getBoundingClientRect();
       const lx = e.clientX - rect.left;
       const ly = e.clientY - rect.top;
+
+      if (isPickingTransect && onMapClickCoordinate) {
+        const baseRadius = Math.min(size.w, size.h) * 0.41;
+        const radius = baseRadius * (0.78 + Math.max(0, Math.min(8, zoom)) * 0.16);
+        const geo = inverseOrtho(
+          lx,
+          ly,
+          Math.max(-90, Math.min(-25, centerLat)),
+          centerLon,
+          radius,
+          size.w / 2,
+          size.h / 2
+        );
+        if (geo && geo.lat <= -55) {
+          onMapClickCoordinate(geo.lat, geo.lon);
+        }
+        return;
+      }
+
       const hit = beaconsRef.current.find((b) => Math.hypot(b.x - lx, b.y - ly) <= 12);
       if (hit) {
         if (hit.kind === 'station') {
@@ -623,13 +731,15 @@ export default function PolarGlobe3D({
           setHoveredBeacon(null);
         }}
         onWheel={handleWheel}
-        className="block h-full w-full cursor-grab active:cursor-grabbing"
+        className={`block h-full w-full ${
+          isPickingTransect ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'
+        }`}
       />
 
       {hoveredBeacon && (
         <div
           style={{
-            left: Math.min(size.w - 210, Math.max(12, hoveredBeacon.x + 14)),
+            left: Math.min(size.w - 220, Math.max(12, hoveredBeacon.x + 14)),
             top: Math.max(12, hoveredBeacon.y - 36)
           }}
           className="pointer-events-none absolute z-20 rounded-xl border border-sky-400/40 bg-slate-950/90 px-3 py-1.5 text-xs shadow-lg backdrop-blur-md"

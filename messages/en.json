@@ -67,12 +67,37 @@
     "liveApiBadge": "Live Open-Meteo ECMWF"
   },
   "geology": {
-    "icePeelTitle": "Bedmap3 Ice-Sheet Peel Slider",
-    "icePeelHint": "Slide to strip up to 4,700 m of glacial ice and expose subglacial mountain ranges, trenches, and lakes.",
+    "icePeelTitle": "Bedmap3 Ice-Sheet Peel & Subglacial Layer",
+    "icePeelHint": "Slide to strip up to 4,700 m of glacial ice and expose subglacial mountain ranges, marine trenches, and lakes.",
+    "layerModeBedrock": "Bedrock Relief",
+    "layerModeThickness": "Ice Thickness",
+    "layerModeSurface": "Ice Surface",
     "surfaceElev": "Ice Surface Elevation",
     "iceThickness": "Ice Sheet Thickness",
     "bedElev": "Subglacial Bedrock Elevation",
-    "marineBedWarning": "Marine-based ice sheet grounded below sea level"
+    "marineBedWarning": "Marine-based ice sheet grounded below sea level",
+    "profilerTitle": "Bedmap3 Two-Point Subglacial Cross-Section Lab",
+    "profilerSubtitle": "Choose a preset transect or draw Point A → Point B directly on the 2D/3D polar canvas.",
+    "drawModeOff": "Draw Custom Transect (A → B)",
+    "drawModePickA": "Click Map to Set Point A (Start)…",
+    "drawModePickB": "Click Map to Set Point B (End)…",
+    "presetLabel": "Scientific Transect Presets",
+    "transectLength": "Transect Distance",
+    "maxIceThickness": "Max Ice Thickness",
+    "minBedrockDepth": "Deepest Bedrock Basin",
+    "marineGroundedShare": "Marine-Grounded Bed",
+    "seaLevelDatum": "0 m Sea Level",
+    "sitesTitle": "SCAR GeoMAP Outcrops, Volcanoes & Gondwana Fossils",
+    "catAll": "All Sites",
+    "catVolcano": "Active Volcanoes",
+    "catTectonic": "Mountains & Trenches",
+    "catLakeValley": "Subglacial Lakes & Dry Valleys",
+    "catFossil": "Gondwana Fossils",
+    "macroRegionsTitle": "Three Antarctic Physiographic Provinces",
+    "sleLabel": "Sea-Level Equiv.",
+    "gazetteerTitle": "SCAR CGA Multilingual Polar Gazetteer",
+    "gazetteerSearch": "Search polar place names or etymology across 6 languages…",
+    "chartedYear": "Charted {year}"
   },
   "corridor": {
     "pinnedLabel": "Default Pinned Expedition Corridor",
@@ -90,6 +115,6 @@
   },
   "footer": {
     "sourcesTitle": "Verified Scientific Data & Cartographic Sources",
-    "scaffoldReady": "Phase 1 Live — Dual-Mode 3D Globe ⇄ 2D EPSG:3031 Canvas, 18-Station Forecast, Drake Sea-State & NSIDC Sea-Ice HUD Active"
+    "scaffoldReady": "Phase 2 Live — Bedmap3 Ice-Peel Explorer, Interactive Cross-Section Lab, SCAR GeoMAP Outcrops & 6-Locale CGA Gazetteer Active"
   }
 }

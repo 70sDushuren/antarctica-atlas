@@ -67,12 +67,37 @@
     "liveApiBadge": "实时 Open-Meteo ECMWF"
   },
   "geology": {
-    "icePeelTitle": "Bedmap3 冰盖剥离透视滑块",
+    "icePeelTitle": "Bedmap3 冰盖剥离与冰下高程图层",
     "icePeelHint": "拖动滑块逐层剥离厚达 4,700 米的大陆冰盖，直观透视冰下山脉、深邃海沟与冰下湖泊。",
+    "layerModeBedrock": "冰下基岩起伏",
+    "layerModeThickness": "冰盖厚度分布",
+    "layerModeSurface": "冰面海拔高程",
     "surfaceElev": "冰面海拔高程",
     "iceThickness": "大陆冰盖厚度",
     "bedElev": "冰下基岩高程",
-    "marineBedWarning": "海平面以下接地海洋性冰盖基底敏感区"
+    "marineBedWarning": "海平面以下接地海洋性冰盖基底敏感区",
+    "profilerTitle": "Bedmap3 冰面—冰厚—基岩双层横截面实验室",
+    "profilerSubtitle": "一键切换经典科学测线，或直接在 2D/3D 极地地图上点击 A → B 两点自由拉线切割冰盖。",
+    "drawModeOff": "地图点击拉线测绘 (A → B)",
+    "drawModePickA": "请在地图上点击设置起点 A…",
+    "drawModePickB": "请在地图上点击设置终点 B…",
+    "presetLabel": "经典跨洲科学断面",
+    "transectLength": "测线全长",
+    "maxIceThickness": "最大冰层厚度",
+    "minBedrockDepth": "最深基岩海沟",
+    "marineGroundedShare": "海平面以下冰床占比",
+    "seaLevelDatum": "0 m 海平面基准",
+    "sitesTitle": "SCAR GeoMAP 露头岩性、极地活火山与冈瓦纳化石专题",
+    "catAll": "全部地质专题",
+    "catVolcano": "极地活火山",
+    "catTectonic": "冰下山脉与海沟",
+    "catLakeValley": "冰下湖与无冰干谷",
+    "catFossil": "冈瓦纳古生物化石",
+    "macroRegionsTitle": "南极三大自然地理构造单元解构",
+    "sleLabel": "海平面当量",
+    "gazetteerTitle": "SCAR CGA 六语极地地名溯源词典",
+    "gazetteerSearch": "支持以六种语言检索极地地标译名或发现史渊源…",
+    "chartedYear": "{year} 年首测命名"
   },
   "corridor": {
     "pinnedLabel": "默认置顶极地考察航线走廊",
@@ -90,6 +115,6 @@
   },
   "footer": {
     "sourcesTitle": "权威科学数据源与极地测绘基准溯源",
-    "scaffoldReady": "Phase 1 已上线 —— 3D 极地地球 ⇄ 2D EPSG:3031 双模画布、18 站 7 日预报、德雷克海况仪与海冰距平曲线已激活"
+    "scaffoldReady": "Phase 2 已上线 —— Bedmap3 冰盖剥离透视、两点拉线横截面实验室、SCAR GeoMAP 地质专题与六语地名库已激活"
   }
 }

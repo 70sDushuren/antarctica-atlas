@@ -11,6 +11,7 @@ import {
   computeSubsolarPoint,
   densifyGreatCircle,
   EPSG3031_PROJ4,
+  epsg3031ToWgs84,
   NASA_GIBS_EPSG3031_CONFIG,
   wgs84ToEpsg3031
 } from '@/lib/polar-math';
@@ -18,10 +19,12 @@ import type {
   ExpeditionCorridor,
   HistoricMonument,
   PolarBaseLayer,
+  PolarGeologicalSite,
   PolarOutlineDataPack,
   PolarStation,
   StationWeatherTelemetry,
-  SubglacialBedmapGrid
+  SubglacialBedmapGrid,
+  SubglacialLayerMode
 } from '@/lib/types';
 
 export interface PolarMap2DEpsg3031Props {
@@ -30,6 +33,7 @@ export interface PolarMap2DEpsg3031Props {
   centerLon: number;
   zoom: number;
   peelPercent: number;
+  subglacialLayerMode: SubglacialLayerMode;
   baseLayer: PolarBaseLayer;
   showSolarTerminator: boolean;
   outlinePack: PolarOutlineDataPack | null;
@@ -38,7 +42,14 @@ export interface PolarMap2DEpsg3031Props {
   weatherByStation: Record<string, StationWeatherTelemetry>;
   selectedStationId: string;
   monuments: HistoricMonument[];
+  geologicalSites: PolarGeologicalSite[];
   activeCorridor: ExpeditionCorridor;
+  transectEndpoints: {
+    pointA: { lat: number; lon: number };
+    pointB: { lat: number; lon: number };
+  };
+  isPickingTransect: boolean;
+  onMapClickCoordinate?: (lat: number, lon: number) => void;
   onCameraChange: (patch: { centerLat?: number; centerLon?: number; zoom?: number }) => void;
   onSelectStation: (stationId: string) => void;
   onCursorMove?: (coords: { lat: number; lon: number; xKm: number; yKm: number } | null) => void;
@@ -51,7 +62,23 @@ function clampPolarLat(lat: number): number {
   return Math.max(-89.99, Math.min(-52.0, lat));
 }
 
-function getBedrockFillColor(bedM: number): string {
+function getSubglacialFillColor(
+  tuple: [number, number, number],
+  mode: SubglacialLayerMode
+): string {
+  const [surfM, bedM, thickM] = tuple;
+  if (mode === 'thickness') {
+    if (thickM >= 3200) return '#a855f7';
+    if (thickM >= 2000) return '#3b82f6';
+    if (thickM >= 900) return '#38bdf8';
+    return '#bae6fd';
+  }
+  if (mode === 'surface') {
+    if (surfM >= 3200) return '#f8fafc';
+    if (surfM >= 2000) return '#bae6fd';
+    if (surfM >= 800) return '#38bdf8';
+    return '#0e7490';
+  }
   if (bedM < -1200) return '#6366f1';
   if (bedM < 0) return '#0ea5e9';
   if (bedM < 900) return '#10b981';
@@ -64,6 +91,7 @@ export default function PolarMap2DEpsg3031({
   centerLon,
   zoom,
   peelPercent,
+  subglacialLayerMode,
   baseLayer,
   showSolarTerminator,
   outlinePack,
@@ -72,7 +100,11 @@ export default function PolarMap2DEpsg3031({
   weatherByStation,
   selectedStationId,
   monuments,
+  geologicalSites,
   activeCorridor,
+  transectEndpoints,
+  isPickingTransect,
+  onMapClickCoordinate,
   onCameraChange,
   onSelectStation,
   onCursorMove
@@ -82,6 +114,13 @@ export default function PolarMap2DEpsg3031({
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const overlayGroupRef = useRef<L.LayerGroup | null>(null);
   const suppressMoveRef = useRef(false);
+  const clickCallbackRef = useRef(onMapClickCoordinate);
+  const pickingRef = useRef(isPickingTransect);
+
+  useEffect(() => {
+    clickCallbackRef.current = onMapClickCoordinate;
+    pickingRef.current = isPickingTransect;
+  }, [onMapClickCoordinate, isPickingTransect]);
 
   const densifiedCorridorLatLngs = useMemo(() => {
     const pts: Array<[number, number]> = [];
@@ -97,7 +136,23 @@ export default function PolarMap2DEpsg3031({
     return pts;
   }, [activeCorridor]);
 
-  // 1. Initialize Leaflet Map with Canonical EPSG:3031 CRS once
+  // Planar EPSG:3031 straight transect line sampled cleanly so Leaflet connects smoothly across 90°S & ±180°
+  const planarTransectLatLngs = useMemo(() => {
+    const pA = wgs84ToEpsg3031(transectEndpoints.pointA.lat, transectEndpoints.pointA.lon);
+    const pB = wgs84ToEpsg3031(transectEndpoints.pointB.lat, transectEndpoints.pointB.lon);
+    const pts: Array<[number, number]> = [];
+    const steps = 40;
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const geo = epsg3031ToWgs84(
+        pA.x + (pB.x - pA.x) * t,
+        pA.y + (pB.y - pA.y) * t
+      );
+      pts.push([clampPolarLat(geo.lat), geo.lon]);
+    }
+    return pts;
+  }, [transectEndpoints]);
+
   useEffect(() => {
     const el = mapElRef.current;
     if (!el || mapRef.current) return;
@@ -137,6 +192,15 @@ export default function PolarMap2DEpsg3031({
       });
     });
 
+    map.on('click', (ev: L.LeafletMouseEvent) => {
+      if (pickingRef.current && clickCallbackRef.current) {
+        clickCallbackRef.current(
+          Math.max(-89.99, Math.min(-55.0, ev.latlng.lat)),
+          ev.latlng.lng
+        );
+      }
+    });
+
     map.on('mousemove', (ev: L.LeafletMouseEvent) => {
       if (!onCursorMove) return;
       const xy = wgs84ToEpsg3031(ev.latlng.lat, ev.latlng.lng);
@@ -161,7 +225,6 @@ export default function PolarMap2DEpsg3031({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2. Sync external camera changes (e.g. from 3D Globe switch or Station dropdown)
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -176,7 +239,6 @@ export default function PolarMap2DEpsg3031({
     }
   }, [centerLat, centerLon, zoom]);
 
-  // 3. Switch NASA GIBS EPSG:3031 WMTS Tile Layer cleanly
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -212,13 +274,11 @@ export default function PolarMap2DEpsg3031({
     tileLayerRef.current = layer;
   }, [baseLayer]);
 
-  // 4. Render Scientific EPSG:3031 Graticule, Continent, Bedmap3 Peel, Terminator & Beacons
   useEffect(() => {
     const group = overlayGroupRef.current;
     if (!group) return;
     group.clearLayers();
 
-    // 4a. Polar Graticule Rings (60°S Treaty, 66.56°S Polar Circle, 75°S, 85°S) & Cardinal Meridians
     for (const ringLat of [-60, -66.563, -75, -85]) {
       const latlngs: Array<[number, number]> = [];
       for (let lon = -180; lon <= 180; lon += 3) {
@@ -248,7 +308,6 @@ export default function PolarMap2DEpsg3031({
       ).addTo(group);
     }
 
-    // 4b. Antarctic Continent & Ross / Filchner-Ronne Ice Shelves (Seam-free in EPSG:3031)
     if (outlinePack) {
       const iceFillOpacity = Math.max(0.08, 0.36 * (1 - peelPercent / 100));
       L.polygon(
@@ -277,27 +336,24 @@ export default function PolarMap2DEpsg3031({
       }
     }
 
-    // 4c. Bedmap3 Subglacial Bedrock Grid Nodes (when Ice-Peel > 0%)
+    // Subglacial Bedmap3 Grid Nodes (57x57 sampled every 2 cells for crisp 2D rendering)
     if (bedmapGrid && peelPercent > 0) {
-      const alpha = Math.min(0.78, (peelPercent / 100) * 0.82);
+      const alpha = Math.min(0.8, (peelPercent / 100) * 0.84);
       const { min, step } = bedmapGrid.gridBoundsKm;
 
-      for (let r = 0; r < bedmapGrid.rows.length; r++) {
+      for (let r = 0; r < bedmapGrid.rows.length; r += 2) {
         const yKm = min + r * step;
-        for (let c = 0; c < bedmapGrid.rows[r].length; c++) {
+        for (let c = 0; c < bedmapGrid.rows[r].length; c += 2) {
           const xKm = min + c * step;
           if (Math.hypot(xKm, yKm) > 2500) continue;
-          const [surfM, bedM] = bedmapGrid.rows[r][c];
-          if (surfM <= 0) continue;
+          const tuple = bedmapGrid.rows[r][c];
+          if (tuple[0] <= 0) continue;
 
-          const rho = Math.hypot(xKm, yKm) * 1000;
-          const latApprox = rho < 1 ? -89.99 : -90 + rho / 111_320;
-          const lonApprox = (Math.atan2(xKm, yKm) * 180) / Math.PI;
-
-          L.circleMarker([latApprox, lonApprox], {
-            radius: 5,
+          const geo = epsg3031ToWgs84(xKm * 1000, yKm * 1000);
+          L.circleMarker([clampPolarLat(geo.lat), geo.lon], {
+            radius: 4.5,
             stroke: false,
-            fillColor: getBedrockFillColor(bedM),
+            fillColor: getSubglacialFillColor(tuple, subglacialLayerMode),
             fillOpacity: alpha,
             interactive: false
           }).addTo(group);
@@ -305,7 +361,6 @@ export default function PolarMap2DEpsg3031({
       }
     }
 
-    // 4d. Solar Terminator Horizon Curve in EPSG:3031
     if (showSolarTerminator) {
       const { declinationDeg, subsolarLonDeg } = computeSubsolarPoint();
       if (Math.abs(declinationDeg) > 0.2) {
@@ -331,34 +386,61 @@ export default function PolarMap2DEpsg3031({
       }
     }
 
-    // 4e. Expedition Corridor Geodesic Polyline & Waypoints
     if (densifiedCorridorLatLngs.length > 1) {
       L.polyline(densifiedCorridorLatLngs, {
         color: '#fbbf24',
-        weight: 2.8,
-        opacity: 0.92,
+        weight: 2.6,
+        opacity: 0.88,
+        interactive: false
+      }).addTo(group);
+    }
+
+    // Active Bedmap3 Cross-Section Transect Line (A -> B)
+    if (planarTransectLatLngs.length > 1) {
+      L.polyline(planarTransectLatLngs, {
+        color: '#e879f9',
+        weight: 3,
+        dashArray: '7 5',
+        opacity: 0.95,
         interactive: false
       }).addTo(group);
 
-      for (const wp of activeCorridor.waypoints) {
-        L.circleMarker([clampPolarLat(wp.lat), wp.lon], {
-          radius: 4.5,
+      for (const [tag, pt] of [
+        ['A', transectEndpoints.pointA],
+        ['B', transectEndpoints.pointB]
+      ] as const) {
+        L.circleMarker([clampPolarLat(pt.lat), pt.lon], {
+          radius: 7,
           color: '#0f172a',
-          weight: 1.5,
-          fillColor: '#fbbf24',
+          weight: 2,
+          fillColor: '#e879f9',
           fillOpacity: 1
         })
-          .bindTooltip(`${wp.name[locale]}`, { direction: 'top' })
+          .bindTooltip(`Transect ${tag} (${pt.lat.toFixed(1)}°, ${pt.lon.toFixed(1)}°)`, {
+            direction: 'top'
+          })
           .addTo(group);
       }
     }
 
-    // 4f. Protected Historic Monuments (ATCM HSM)
+    // SCAR GeoMAP Geological Sites
+    for (const geoSite of geologicalSites) {
+      L.circleMarker([clampPolarLat(geoSite.lat), geoSite.lon], {
+        radius: 5.5,
+        color: '#0f172a',
+        weight: 1.4,
+        fillColor: geoSite.category === 'volcano' ? '#f43f5e' : '#c084fc',
+        fillOpacity: 0.92
+      })
+        .bindTooltip(`${geoSite.name[locale]}`, { direction: 'top' })
+        .addTo(group);
+    }
+
     for (const hsm of monuments) {
       L.circleMarker([hsm.lat, hsm.lon], {
-        radius: 6,
+        radius: 5.8,
         color: '#fef3c7',
-        weight: 1.5,
+        weight: 1.4,
         fillColor: '#d97706',
         fillOpacity: 0.95
       })
@@ -366,7 +448,6 @@ export default function PolarMap2DEpsg3031({
         .addTo(group);
     }
 
-    // 4g. 18 Polar Research Stations
     for (const st of stations) {
       const isSelected = st.id === selectedStationId;
       const weather = weatherByStation[st.id];
@@ -384,6 +465,10 @@ export default function PolarMap2DEpsg3031({
       });
 
       marker.on('click', () => {
+        if (pickingRef.current && clickCallbackRef.current) {
+          clickCallbackRef.current(st.lat, st.lon);
+          return;
+        }
         onSelectStation(st.id);
         onCameraChange({ centerLat: st.lat, centerLon: st.lon });
       });
@@ -394,9 +479,12 @@ export default function PolarMap2DEpsg3031({
     outlinePack,
     bedmapGrid,
     peelPercent,
+    subglacialLayerMode,
     showSolarTerminator,
     densifiedCorridorLatLngs,
-    activeCorridor,
+    planarTransectLatLngs,
+    transectEndpoints,
+    geologicalSites,
     monuments,
     stations,
     weatherByStation,
@@ -407,7 +495,11 @@ export default function PolarMap2DEpsg3031({
   ]);
 
   return (
-    <div className="relative h-full w-full min-h-[420px] overflow-hidden rounded-xl bg-[#061325]">
+    <div
+      className={`relative h-full w-full min-h-[420px] overflow-hidden rounded-xl bg-[#061325] ${
+        isPickingTransect ? 'cursor-crosshair' : ''
+      }`}
+    >
       <div ref={mapElRef} className="h-full w-full min-h-[420px]" />
     </div>
   );

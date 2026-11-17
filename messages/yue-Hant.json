@@ -67,12 +67,37 @@
     "liveApiBadge": "實時連線 Open-Meteo"
   },
   "geology": {
-    "icePeelTitle": "Bedmap3 揭開冰蓋透視滑尺",
+    "icePeelTitle": "Bedmap3 揭開冰蓋透視滑尺同地底圖層",
     "icePeelHint": "拉動呢條滑尺就可以逐層揭開成四千七百米厚嘅冰蓋，直接睇清楚底下嘅山脈、深海溝同埋冰下湖。",
+    "layerModeBedrock": "睇冰底基岩高低",
+    "layerModeThickness": "睇冰層有幾厚",
+    "layerModeSurface": "睇冰面海拔高度",
     "surfaceElev": "冰面而家高度",
     "iceThickness": "冰層有幾厚",
     "bedElev": "底層基岩高度",
-    "marineBedWarning": "呢度個冰底低過海平面，屬於海洋性冰蓋敏感帶"
+    "marineBedWarning": "呢度個冰底低過海平面，屬於海洋性冰蓋敏感帶",
+    "profilerTitle": "Bedmap3 切開冰蓋睇基岩橫截面實驗室",
+    "profilerSubtitle": "一撳即睇四條經典跨洲剖面，又或者直接喺 2D/3D 地圖上面篤 A → B 兩點自己拉線切開冰層。",
+    "drawModeOff": "喺地圖篤兩點自己拉剖面線 (A → B)",
+    "drawModePickA": "請喺地圖上面撳一下揀起點 A…",
+    "drawModePickB": "跟住喺地圖撳一下揀終點 B…",
+    "presetLabel": "揀一條經典科學橫切線",
+    "transectLength": "呢條剖面總長",
+    "maxIceThickness": "最厚嗰度冰層",
+    "minBedrockDepth": "最深嗰個海溝底",
+    "marineGroundedShare": "低過海平面冰底比例",
+    "seaLevelDatum": "0 m 海平面基準線",
+    "sitesTitle": "SCAR GeoMAP 裸露岩石、極地活火山同遠古恐龍化石點",
+    "catAll": "睇晒全部地質點",
+    "catVolcano": "噴緊煙嘅活火山",
+    "catTectonic": "冰下高山同深海溝",
+    "catLakeValley": "冰下巨湖同無冰乾谷",
+    "catFossil": "岡瓦納古植物同恐龍化石",
+    "macroRegionsTitle": "一圖睇明南極三大自然地理板塊分別",
+    "sleLabel": "融晒升海平面",
+    "gazetteerTitle": "SCAR CGA 六種語言南極地名由來大辭典",
+    "gazetteerSearch": "用中英西葡粵邊種字打都得，即刻查地名故事同多國譯名…",
+    "chartedYear": "{year} 年首次繪入海圖"
   },
   "corridor": {
     "pinnedLabel": "預設揀定嘅經典南極探險航線",
@@ -90,6 +115,6 @@
   },
   "footer": {
     "sourcesTitle": "官方科研數據來源同埋極地地圖基準",
-    "scaffoldReady": "Phase 1 正式運作緊 —— 3D 立體地球 ⇄ 2D EPSG:3031 雙模地圖、18 個科考站七日預報、德雷克風浪計同埋海冰走勢圖已經全部開通"
+    "scaffoldReady": "Phase 2 已經全面開通 —— Bedmap3 揭冰透視、兩點拉線橫截面測繪儀、SCAR GeoMAP 火山化石專題同埋六語地名辭典全部就緒"
   }
 }

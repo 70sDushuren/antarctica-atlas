@@ -187,6 +187,57 @@ export interface TransectSamplePoint {
   isMarineBasedIceSheet: boolean;
 }
 
+export type SubglacialLayerMode = 'bedrock' | 'thickness' | 'surface';
+
+export type GeologyFeatureCategory =
+  | 'volcano'
+  | 'subglacial-tectonic'
+  | 'cryosphere-lake-valley'
+  | 'gondwana-fossil';
+
+export interface PolarGeologicalSite {
+  id: string;
+  category: GeologyFeatureCategory;
+  name: LocalizedText;
+  geologicAge: LocalizedText;
+  lat: number;
+  lon: number;
+  elevationOrDepthM: number;
+  rockOrFeatureType: LocalizedText;
+  summary: LocalizedText;
+  sourceUrl: string;
+}
+
+export interface PolarMacroRegion {
+  id: 'east-antarctica' | 'west-antarctica' | 'antarctic-peninsula';
+  name: LocalizedText;
+  crustalAge: LocalizedText;
+  meanIceThicknessM: number;
+  seaLevelEquivalentM: number;
+  centerLat: number;
+  centerLon: number;
+  summary: LocalizedText;
+}
+
+export interface GazetteerEntry {
+  id: string;
+  cgaFeatureType: LocalizedText;
+  lat: number;
+  lon: number;
+  names: LocalizedText;
+  etymology: LocalizedText;
+  firstChartedYear: number;
+  sourceUrl: string;
+}
+
+export interface SubglacialTransectPreset {
+  id: string;
+  name: LocalizedText;
+  summary: LocalizedText;
+  pointA: { lat: number; lon: number; label: LocalizedText };
+  pointB: { lat: number; lon: number; label: LocalizedText };
+}
+
 export interface AtlasUrlState {
   mode: MapViewMode;
   units: UnitSystem;
@@ -196,4 +247,5 @@ export interface AtlasUrlState {
   centerLat: number;
   centerLon: number;
   zoom: number;
+  transect: string;
 }

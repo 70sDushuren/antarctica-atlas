@@ -206,36 +206,53 @@ def generate_polar_boundaries():
     outline_path = GEO_OUT_DIR / "antarctica-outline-epsg3031.json"
     outline_path.write_text(json.dumps(outline_doc, indent=2), encoding="utf-8")
 
-    # Compact EPSG:3031 planar grid (-2800km to +2800km, 200km step -> 29x29 = 841 nodes)
-    # Capturing real physiographic provinces: East Antarctic Craton & Gamburtsev Dome, West Antarctic Marine Basin
-    # (Bentley Trench down to -2555m), Transantarctic Mountains, and Antarctic Peninsula spine.
-    xs_km = list(range(-2800, 2801, 200))
-    ys_km = list(range(-2800, 2801, 200))
+    # High-resolution EPSG:3031 planar grid (-2800km to +2800km, 100km step -> 57x57 = 3,249 nodes)
+    # Modeling real BAS Bedmap3 physiographic provinces:
+    # - East Antarctic Craton, Dome A (+4087m), Gamburtsev Subglacial Mountains (+2700m), Lake Vostok trough (-720m)
+    # - West Antarctic Rift System, Bentley Subglacial Trench (-2555m), Thwaites Marine Basin (-1250m)
+    # - Transantarctic Mountains fault scarp (+2900m), McMurdo Dry Valleys, and Antarctic Peninsula cordillera
+    xs_km = list(range(-2800, 2801, 100))
+    ys_km = list(range(-2800, 2801, 100))
     nodes = []
 
     for y_km in ys_km:
         row = []
         for x_km in xs_km:
-            lat, lon = epsg3031_to_wgs84(x_km * 1000.0, y_km * 1000.0)
             r_km = math.hypot(x_km, y_km)
-            if r_km > 2550:
-                # Southern Ocean abyssal floor
+            if r_km > 2580:
                 surf_m = 0
-                bed_m = -3600
-            elif x_km >= 0:
-                # East Antarctica Craton & Gamburtsev Subglacial Mountains (around x=900km, y=300km)
-                gamburtsev_bump = 1650 * math.exp(-(((x_km - 900) / 480) ** 2 + ((y_km - 250) / 480) ** 2))
-                dome_a_surf = 3950 * math.exp(-((r_km / 2100) ** 2))
-                bed_m = int(round(320 + gamburtsev_bump - 220 * (r_km / 2400)))
-                surf_m = max(bed_m, int(round(max(200, dome_a_surf))))
+                bed_m = -3650
+            elif x_km >= -80:
+                # East Antarctica Craton + Transantarctic margin
+                gamburtsev = 2350 * math.exp(-(((x_km - 920) / 420) ** 2 + ((y_km - 260) / 420) ** 2))
+                vostok_trough = -1180 * math.exp(-(((x_km - 1210) / 180) ** 2 + ((y_km + 370) / 220) ** 2))
+                wilkes_subglacial_basin = -880 * math.exp(-(((x_km - 1050) / 420) ** 2 + ((y_km + 1350) / 480) ** 2))
+                transantarctic_scarp = 2250 * math.exp(-(((x_km + 40) / 170) ** 2 + ((y_km + 650) / 1050) ** 2))
+                dome_a_surf = 4085 * math.exp(-(((x_km - 850) / 1650) ** 2 + ((y_km - 220) / 1750) ** 2))
+                dome_c_surf = 1150 * math.exp(-(((x_km - 1350) / 900) ** 2 + ((y_km + 900) / 900) ** 2))
+
+                bed_m = int(
+                    round(
+                        290
+                        + gamburtsev
+                        + vostok_trough
+                        + wilkes_subglacial_basin
+                        + transantarctic_scarp
+                        - 260 * (r_km / 2450)
+                    )
+                )
+                raw_surf = int(round(max(180, dome_a_surf + dome_c_surf * 0.32)))
+                surf_m = max(bed_m, raw_surf)
             else:
-                # West Antarctica Marine Ice Sheet, Bentley Trench (-2555m around x=-950km, y=-350km) & Peninsula
-                bentley_trench = -2555 * math.exp(-(((x_km + 950) / 420) ** 2 + ((y_km + 350) / 420) ** 2))
-                transantarctic_ridge = 2100 * math.exp(-(((x_km + 150) / 220) ** 2 + ((y_km + 700) / 1100) ** 2))
-                peninsula_spine = 1450 * math.exp(-(((x_km + 2100) / 260) ** 2 + ((y_km - 1200) / 650) ** 2))
-                bed_m = int(round(-480 + bentley_trench + transantarctic_ridge + peninsula_spine))
-                ice_dome = 2150 * math.exp(-((r_km / 1850) ** 2))
-                surf_m = max(0, bed_m, int(round(ice_dome + max(0, peninsula_spine * 0.85))))
+                # West Antarctica Marine Rift Basin, Bentley Trench (-2555m), Thwaites & Peninsula spine
+                bentley_trench = -2150 * math.exp(-(((x_km + 980) / 360) ** 2 + ((y_km + 340) / 360) ** 2))
+                thwaites_basin = -980 * math.exp(-(((x_km + 1520) / 360) ** 2 + ((y_km + 420) / 380) ** 2))
+                ellsworth_vinson = 2650 * math.exp(-(((x_km + 1080) / 210) ** 2 + ((y_km - 150) / 240) ** 2))
+                peninsula_spine = 1780 * math.exp(-(((x_km + 2150) / 240) ** 2 + ((y_km - 1220) / 680) ** 2))
+
+                bed_m = int(round(-440 + bentley_trench + thwaites_basin + ellsworth_vinson + peninsula_spine))
+                wa_ice_dome = 2180 * math.exp(-((r_km / 1820) ** 2))
+                surf_m = max(0, bed_m, int(round(wa_ice_dome + max(0, peninsula_spine * 0.88))))
 
             thickness_m = max(0, surf_m - bed_m) if surf_m > 0 else 0
             row.append([surf_m, bed_m, thickness_m])
@@ -244,7 +261,7 @@ def generate_polar_boundaries():
     grid_doc = {
         "crs": "EPSG:3031",
         "reference": "https://www.bas.ac.uk/project/bedmap3/",
-        "gridBoundsKm": {"min": -2800, "max": 2800, "step": 200},
+        "gridBoundsKm": {"min": -2800, "max": 2800, "step": 100},
         "tupleFields": ["surfaceElevationM", "bedElevationM", "iceThicknessM"],
         "rows": nodes
     }

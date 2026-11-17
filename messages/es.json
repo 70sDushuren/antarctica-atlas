@@ -67,12 +67,37 @@
     "liveApiBadge": "Open-Meteo ECMWF en Vivo"
   },
   "geology": {
-    "icePeelTitle": "Control Bedmap3 de Capas del Manto de Hielo",
-    "icePeelHint": "Deslice para retirar hasta 4.700 m de hielo continental y descubrir cordilleras, fosas y lagos subglaciales.",
+    "icePeelTitle": "Capas Subglaciales y Control de Hielo Bedmap3",
+    "icePeelHint": "Deslice para retirar hasta 4.700 m de hielo continental y descubrir cordilleras, fosas marinas y lagos subglaciales.",
+    "layerModeBedrock": "Relieve del Lecho Rocoso",
+    "layerModeThickness": "Espesor del Hielo",
+    "layerModeSurface": "Elevación Superficial",
     "surfaceElev": "Elevación de Superficie del Hielo",
     "iceThickness": "Espesor del Manto de Hielo",
     "bedElev": "Elevación del Lecho Rocoso",
-    "marineBedWarning": "Manto de hielo marino asentado bajo el nivel del mar"
+    "marineBedWarning": "Manto de hielo marino asentado bajo el nivel del mar",
+    "profilerTitle": "Laboratorio Bedmap3 de Perfil Transversal Subglacial",
+    "profilerSubtitle": "Elija un perfil científico o haga clic en dos puntos (A → B) sobre el lienzo polar 2D/3D.",
+    "drawModeOff": "Trazar Perfil en el Mapa (A → B)",
+    "drawModePickA": "Clic en el Mapa para el Punto A (Inicio)…",
+    "drawModePickB": "Clic en el Mapa para el Punto B (Fin)…",
+    "presetLabel": "Perfiles Científicos Predefinidos",
+    "transectLength": "Distancia del Perfil",
+    "maxIceThickness": "Espesor Máx. de Hielo",
+    "minBedrockDepth": "Fosa Más Profunda",
+    "marineGroundedShare": "Lecho Bajo el Nivel del Mar",
+    "seaLevelDatum": "0 m Nivel del Mar",
+    "sitesTitle": "Afloramientos SCAR GeoMAP, Volcanes y Fósiles de Gondwana",
+    "catAll": "Todos",
+    "catVolcano": "Volcanes Activos",
+    "catTectonic": "Montañas y Fosas",
+    "catLakeValley": "Lagos Subglaciales y Valles Secos",
+    "catFossil": "Fósiles de Gondwana",
+    "macroRegionsTitle": "Tres Provincias Fisiográficas Antárticas",
+    "sleLabel": "Equiv. Nivel del Mar",
+    "gazetteerTitle": "Nomenclátor Polar Multilingüe SCAR CGA",
+    "gazetteerSearch": "Buscar topónimos polares u origen histórico en 6 idiomas…",
+    "chartedYear": "Cartografiado en {year}"
   },
   "corridor": {
     "pinnedLabel": "Corredor de Expedición Predeterminado",
@@ -90,6 +115,6 @@
   },
   "footer": {
     "sourcesTitle": "Fuentes Científicas Verificadas y Referencias Cartográficas",
-    "scaffoldReady": "Fase 1 Activa — Globo 3D ⇄ Mapa 2D EPSG:3031, Pronóstico de 18 Bases, Pasaje de Drake y Hielo Marino NSIDC"
+    "scaffoldReady": "Fase 2 Activa — Explorador Bedmap3, Laboratorio de Perfiles Transversales, Geología SCAR GeoMAP y Toponimia CGA"
   }
 }

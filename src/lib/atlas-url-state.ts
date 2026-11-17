@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { SUBGLACIAL_TRANSECT_PRESETS } from '@/data/geology-and-gazetteer';
 import { EXPEDITION_CORRIDORS } from '@/data/heritage-and-corridors';
 import { POLAR_STATIONS } from '@/data/stations';
 import type { AtlasUrlState, MapViewMode, UnitSystem } from './types';
@@ -15,7 +16,8 @@ export const DEFAULT_ATLAS_URL_STATE: AtlasUrlState = {
   peel: 25,
   centerLat: -62.2163,
   centerLon: -58.9622,
-  zoom: 3
+  zoom: 3,
+  transect: SUBGLACIAL_TRANSECT_PRESETS[0].id
 };
 
 export function parseAtlasUrlState(
@@ -66,7 +68,12 @@ export function parseAtlasUrlState(
       ? rawZoom
       : DEFAULT_ATLAS_URL_STATE.zoom;
 
-  return { mode, units, corridor, station, peel, centerLat, centerLon, zoom };
+  const rawTransect = params.get('transect');
+  const transect = SUBGLACIAL_TRANSECT_PRESETS.some((p) => p.id === rawTransect)
+    ? (rawTransect as string)
+    : DEFAULT_ATLAS_URL_STATE.transect;
+
+  return { mode, units, corridor, station, peel, centerLat, centerLon, zoom, transect };
 }
 
 export function serializeAtlasUrlState(state: AtlasUrlState): string {
@@ -79,6 +86,7 @@ export function serializeAtlasUrlState(state: AtlasUrlState): string {
   sp.set('lat', state.centerLat.toFixed(4));
   sp.set('lon', state.centerLon.toFixed(4));
   sp.set('zoom', String(state.zoom));
+  sp.set('transect', state.transect);
   return sp.toString();
 }
 

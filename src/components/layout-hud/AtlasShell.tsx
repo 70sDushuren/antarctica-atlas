@@ -1,8 +1,14 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { DualModeAtlasCanvas } from '@/components/atlas-canvas';
+import {
+  GeologySitesAndRegionsPanel,
+  PolarGazetteerSearch,
+  SubglacialCrossSectionLab,
+  type TransectDrawStep
+} from '@/components/geology-lab';
 import {
   DrakeSeaStateCard,
   SeaIceAnomalyCard,
@@ -16,8 +22,11 @@ import {
 import { polarRepository } from '@/lib/polar-repository';
 import type {
   MarineCorridorTelemetry,
+  PolarOutlineDataPack,
   SeaIceSummaryPayload,
   StationWeatherTelemetry,
+  SubglacialBedmapGrid,
+  SubglacialLayerMode,
   ThemeMode,
   UnitSystem
 } from '@/lib/types';
@@ -34,12 +43,37 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
 
   const { atlasState, updateAtlasState } = useAtlasUrlState();
   const [theme, setTheme] = useState<ThemeMode>('dark');
+  const [subglacialLayerMode, setSubglacialLayerMode] =
+    useState<SubglacialLayerMode>('bedrock');
+  const [outlinePack, setOutlinePack] = useState<PolarOutlineDataPack | null>(null);
+  const [bedmapGrid, setBedmapGrid] = useState<SubglacialBedmapGrid | null>(null);
   const [weatherList, setWeatherList] = useState<StationWeatherTelemetry[]>([]);
   const [marineList, setMarineList] = useState<MarineCorridorTelemetry[]>([]);
   const [seaIce, setSeaIce] = useState<SeaIceSummaryPayload | null>(null);
 
+  const transectPresets = polarRepository.getTransectPresets();
+  const activePreset =
+    transectPresets.find((p) => p.id === atlasState.transect) ?? transectPresets[0];
+
+  const [drawStep, setDrawStep] = useState<TransectDrawStep>('idle');
+  const [customEndpoints, setCustomEndpoints] = useState<{
+    pointA: { lat: number; lon: number };
+    pointB: { lat: number; lon: number };
+  } | null>(null);
+  const [draftPointA, setDraftPointA] = useState<{ lat: number; lon: number } | null>(
+    null
+  );
+
   useEffect(() => {
     const controller = new AbortController();
+    polarRepository
+      .fetchPolarOutlinePack(controller.signal)
+      .then(setOutlinePack)
+      .catch(() => {});
+    polarRepository
+      .fetchSubglacialBedmapGrid(controller.signal)
+      .then(setBedmapGrid)
+      .catch(() => {});
     polarRepository
       .fetchStationWeather(controller.signal)
       .then(setWeatherList)
@@ -58,11 +92,38 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
   const corridors = polarRepository.getExpeditionCorridors();
   const stations = polarRepository.getStations();
   const monuments = polarRepository.getHistoricMonuments();
+  const geologicalSites = polarRepository.getGeologicalSites();
+  const macroRegions = polarRepository.getMacroRegions();
+  const gazetteerEntries = polarRepository.getGazetteerEntries();
   const scientificSources = polarRepository.getScientificSources();
 
   const activeCorridor =
     corridors.find((c) => c.id === atlasState.corridor) ??
     polarRepository.getDefaultCorridor();
+
+  const effectiveTransectEndpoints = useMemo(() => {
+    if (customEndpoints) return customEndpoints;
+    return {
+      pointA: { lat: activePreset.pointA.lat, lon: activePreset.pointA.lon },
+      pointB: { lat: activePreset.pointB.lat, lon: activePreset.pointB.lon }
+    };
+  }, [customEndpoints, activePreset]);
+
+  function handleMapClickForTransect(lat: number, lon: number) {
+    const rounded = {
+      lat: Math.round(lat * 100) / 100,
+      lon: Math.round(lon * 100) / 100
+    };
+    if (drawStep === 'pick-a') {
+      setDraftPointA(rounded);
+      setDrawStep('pick-b');
+    } else if (drawStep === 'pick-b') {
+      const start = draftPointA ?? effectiveTransectEndpoints.pointA;
+      setCustomEndpoints({ pointA: start, pointB: rounded });
+      setDraftPointA(null);
+      setDrawStep('idle');
+    }
+  }
 
   function toggleTheme() {
     const next = theme === 'dark' ? 'light' : 'dark';
@@ -150,8 +211,58 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
 
       {/* Main Spatial Canvas & Telemetry HUD Grid */}
       <main className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
-        {/* Left Column: Pinned Expedition Corridor, Bedmap3 Peel Slider & Drake Sea-State */}
+        {/* Left Column: Pinned Expedition Corridor, Bedmap3 Peel/Layer Controls & Drake Sea-State */}
         <section className="lg:col-span-4 flex flex-col gap-4">
+          {/* Bedmap3 Ice-Peel Slider & Subglacial Layer Switcher */}
+          <div className="cryo-card rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-sky-300">
+                {tGeo('icePeelTitle')}
+              </h2>
+              <span className="font-mono text-xs text-amber-300">
+                {atlasState.peel}% Peel
+              </span>
+            </div>
+
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={atlasState.peel}
+              onChange={(e) => updateAtlasState({ peel: Number(e.target.value) })}
+              className="w-full accent-sky-400"
+            />
+
+            <div className="grid grid-cols-3 gap-1 rounded-xl border border-sky-400/20 bg-slate-950/50 p-1">
+              {(
+                [
+                  ['bedrock', tGeo('layerModeBedrock')],
+                  ['thickness', tGeo('layerModeThickness')],
+                  ['surface', tGeo('layerModeSurface')]
+                ] as const
+              ).map(([modeId, modeLabel]) => (
+                <button
+                  key={modeId}
+                  type="button"
+                  onClick={() => {
+                    setSubglacialLayerMode(modeId);
+                    if (atlasState.peel < 20) updateAtlasState({ peel: 55 });
+                  }}
+                  className={`min-w-0 rounded-lg px-2 py-1 text-[11px] font-medium transition ${
+                    subglacialLayerMode === modeId
+                      ? 'bg-sky-400 text-slate-950'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  {modeLabel}
+                </button>
+              ))}
+            </div>
+
+            <p className="text-xs text-slate-300">{tGeo('icePeelHint')}</p>
+          </div>
+
+          {/* Default Pinned Expedition Corridor */}
           <div className="cryo-card rounded-2xl p-4 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-sky-400">
@@ -169,7 +280,10 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
                 value={activeCorridor.id}
                 onChange={(e) => {
                   const nextCorridor = corridors.find((c) => c.id === e.target.value);
-                  const midWp = nextCorridor?.waypoints[Math.floor((nextCorridor.waypoints.length || 1) / 2)];
+                  const midWp =
+                    nextCorridor?.waypoints[
+                      Math.floor((nextCorridor.waypoints.length || 1) / 2)
+                    ];
                   updateAtlasState({
                     corridor: e.target.value,
                     centerLat: midWp?.lat ?? atlasState.centerLat,
@@ -217,27 +331,6 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
             <p className="text-[11px] text-slate-400">{tCor('safetyNotice')}</p>
           </div>
 
-          {/* Bedmap3 Ice-Peel Slider Control (Live-Synced to 3D Globe & 2D EPSG:3031) */}
-          <div className="cryo-card rounded-2xl p-4 space-y-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-sky-300">
-                {tGeo('icePeelTitle')}
-              </h2>
-              <span className="font-mono text-xs text-amber-300">
-                {atlasState.peel}% Peel
-              </span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={atlasState.peel}
-              onChange={(e) => updateAtlasState({ peel: Number(e.target.value) })}
-              className="w-full accent-sky-400"
-            />
-            <p className="text-xs text-slate-300">{tGeo('icePeelHint')}</p>
-          </div>
-
           {/* 5-Tier Drake Passage & Southern Ocean Sea-State Gauge */}
           <DrakeSeaStateCard
             locale={locale}
@@ -247,20 +340,105 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
               updateAtlasState({ centerLat: lat, centerLon: lon, zoom: 3 })
             }
           />
+
+          {/* Featured Protected Historic Sites & Monuments (HSM) */}
+          <div className="cryo-card rounded-2xl p-4 space-y-2.5">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-300">
+              {tNav('heritage')} · ATCM HSM
+            </h3>
+            <div className="space-y-2">
+              {monuments.map((hsm) => (
+                <div
+                  key={hsm.id}
+                  onClick={() =>
+                    updateAtlasState({
+                      centerLat: hsm.lat,
+                      centerLon: hsm.lon,
+                      zoom: 4
+                    })
+                  }
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      updateAtlasState({
+                        centerLat: hsm.lat,
+                        centerLon: hsm.lon,
+                        zoom: 4
+                      });
+                    }
+                  }}
+                  className="cursor-pointer rounded-xl border border-slate-700/60 bg-slate-900/55 hover:border-amber-400/50 p-2.5 text-xs transition"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-1 font-semibold text-amber-200">
+                    <span>{hsm.title[locale]}</span>
+                    <a
+                      href={hsm.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-[11px] text-amber-300 underline"
+                    >
+                      {hsm.hsmCode} ({hsm.year})
+                    </a>
+                  </div>
+                  <p className="mt-1 text-slate-300">{hsm.summary[locale]}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
-        {/* Right/Center Column: Dual-Mode Spatial Canvas + 18-Station Forecast + Sea Ice & HSM */}
+        {/* Right/Center Column: Dual-Mode Spatial Canvas + Cross-Section Lab + Weather + Geology + Gazetteer */}
         <section className="lg:col-span-8 flex flex-col gap-4">
           <DualModeAtlasCanvas
             locale={locale}
             atlasState={atlasState}
+            subglacialLayerMode={subglacialLayerMode}
+            outlinePack={outlinePack}
+            bedmapGrid={bedmapGrid}
             stations={stations}
             weatherList={weatherList}
             monuments={monuments}
+            geologicalSites={geologicalSites}
             activeCorridor={activeCorridor}
+            transectEndpoints={effectiveTransectEndpoints}
+            isPickingTransect={drawStep !== 'idle'}
+            onMapClickCoordinate={handleMapClickForTransect}
             onUpdateState={updateAtlasState}
           />
 
+          {/* Phase 2 Interactive Bedmap3 Two-Point Subglacial Cross-Section Profiler */}
+          <SubglacialCrossSectionLab
+            locale={locale}
+            units={atlasState.units}
+            bedmapGrid={bedmapGrid}
+            presets={transectPresets}
+            selectedPresetId={activePreset.id}
+            transectEndpoints={effectiveTransectEndpoints}
+            isCustomTransect={customEndpoints !== null}
+            drawStep={drawStep}
+            onSelectPreset={(preset) => {
+              setCustomEndpoints(null);
+              setDraftPointA(null);
+              setDrawStep('idle');
+              updateAtlasState({
+                transect: preset.id,
+                centerLat: (preset.pointA.lat + preset.pointB.lat) / 2,
+                centerLon: preset.pointA.lon
+              });
+            }}
+            onToggleDrawMode={() => {
+              if (drawStep === 'idle') {
+                setDrawStep('pick-a');
+              } else {
+                setDrawStep('idle');
+                setDraftPointA(null);
+              }
+            }}
+          />
+
+          {/* 18-Station Forecast + NSIDC Sea-Ice Seasonal Extent */}
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
             <div className="xl:col-span-7">
               <StationWeatherPanel
@@ -278,58 +456,29 @@ function AtlasShellContent({ locale }: { locale: SupportedLocale }) {
                 }
               />
             </div>
-
-            <div className="xl:col-span-5 flex flex-col gap-4">
+            <div className="xl:col-span-5">
               <SeaIceAnomalyCard locale={locale} seaIce={seaIce} />
-
-              {/* Featured Protected Historic Sites & Monuments (HSM) */}
-              <div className="cryo-card rounded-2xl p-4 space-y-2.5">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-300">
-                  {tNav('heritage')} · ATCM HSM
-                </h3>
-                <div className="space-y-2">
-                  {monuments.map((hsm) => (
-                    <div
-                      key={hsm.id}
-                      onClick={() =>
-                        updateAtlasState({
-                          centerLat: hsm.lat,
-                          centerLon: hsm.lon,
-                          zoom: 4
-                        })
-                      }
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          updateAtlasState({
-                            centerLat: hsm.lat,
-                            centerLon: hsm.lon,
-                            zoom: 4
-                          });
-                        }
-                      }}
-                      className="cursor-pointer rounded-xl border border-slate-700/60 bg-slate-900/55 hover:border-amber-400/50 p-2.5 text-xs transition"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-1 font-semibold text-amber-200">
-                        <span>{hsm.title[locale]}</span>
-                        <a
-                          href={hsm.sourceUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-[11px] text-amber-300 underline"
-                        >
-                          {hsm.hsmCode} ({hsm.year})
-                        </a>
-                      </div>
-                      <p className="mt-1 text-slate-300">{hsm.summary[locale]}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
+
+          {/* Phase 2 Macro-Regions, SCAR GeoMAP Outcrops/Volcanoes/Fossils & SCAR CGA Gazetteer */}
+          <GeologySitesAndRegionsPanel
+            locale={locale}
+            units={atlasState.units}
+            sites={geologicalSites}
+            macroRegions={macroRegions}
+            onFocusCoordinates={(lat, lon, zoom = 4) =>
+              updateAtlasState({ centerLat: lat, centerLon: lon, zoom })
+            }
+          />
+
+          <PolarGazetteerSearch
+            locale={locale}
+            entries={gazetteerEntries}
+            onFocusCoordinates={(lat, lon, zoom = 4) =>
+              updateAtlasState({ centerLat: lat, centerLon: lon, zoom })
+            }
+          />
 
           <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-3.5 py-2 text-xs text-emerald-200">
             {tFoot('scaffoldReady')}
