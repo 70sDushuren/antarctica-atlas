@@ -103,7 +103,28 @@
     "pinnedLabel": "Corredor de Expedição Padrão em Destaque",
     "selectRoute": "Alternar Rota de Expedição",
     "waypointsCount": "{count} Pontos de Navegação",
-    "safetyNotice": "As operações seguem as Diretrizes de Visitantes da IAATO e os protocolos ambientais do Tratado da Antártida."
+    "safetyNotice": "As operações seguem as Diretrizes de Visitantes da IAATO e os protocolos ambientais do Tratado da Antártida.",
+    "briefingTitle": "Briefing Multidimensional do Corredor de Expedição",
+    "briefingSubtitle": "Síntese integrada de clima por escala, ondulação oceânica, luz polar, geologia SCAR e sítios históricos HSM",
+    "distanceLabel": "Distância Total",
+    "durationLabel": "Janela de Viagem",
+    "peakSwellLabel": "Onda Máx. no Corredor",
+    "meanDaylightLabel": "Luz Diurna Média",
+    "nearestWeather": "Estação Próxima",
+    "linkedGeology": "Geologia Associada",
+    "linkedHeritage": "Monumento HSM"
+  },
+  "heritage": {
+    "chronicleTitle": "Crônica em Quatro Atos da Exploração e Governança da Antártida",
+    "chronicleSubtitle": "Role pelas quatro eras históricas ou clique em um marco para sincronizar a câmera polar 3D/2D",
+    "autoSyncCamera": "Sincronizar Câmera ao Rolar",
+    "trackPlayerTitle": "Reprodutor de Rotas da Era Heroica (1911 – 1916)",
+    "playTrack": "Reproduzir Rota",
+    "pauseTrack": "Pausar",
+    "resetTrack": "Reiniciar",
+    "compareDualRace": "Sobrepor Rotas Duplas Amundsen vs. Scott rumo a 90°S",
+    "hsmRegistryTitle": "Sítios e Monumentos Históricos Protegidos (ATCM HSM)",
+    "proposingParty": "País Proponente"
   },
   "status": {
     "loading": "Calibrando projeção polar EPSG:3031 e fluxos de telemetria…",
@@ -115,6 +136,6 @@
   },
   "footer": {
     "sourcesTitle": "Fontes Científicas Verificadas e Referências Cartográficas",
-    "scaffoldReady": "Fase 2 Ativa — Explorador Subglacial Bedmap3, Perfil Transversal, Geologia SCAR GeoMAP e Toponímia SCAR CGA"
+    "scaffoldReady": "Antarctica Atlas V1.0 Completo — Todos os 5 Módulos Polares e 6 Idiomas Verificados"
   }
 }

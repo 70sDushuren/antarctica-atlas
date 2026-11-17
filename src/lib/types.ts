@@ -238,6 +238,57 @@ export interface SubglacialTransectPreset {
   pointB: { lat: number; lon: number; label: LocalizedText };
 }
 
+export interface ChronicleEventHighlight {
+  yearLabel: string;
+  title: LocalizedText;
+  detail: LocalizedText;
+  lat: number;
+  lon: number;
+}
+
+export interface ChronicleAct {
+  id: 'act-1-early' | 'act-2-heroic' | 'act-3-treaty' | 'act-4-modern';
+  actNumber: 1 | 2 | 3 | 4;
+  yearsRange: string;
+  title: LocalizedText;
+  leadNarrative: LocalizedText;
+  focusLat: number;
+  focusLon: number;
+  focusZoom: number;
+  milestones: ChronicleEventHighlight[];
+  sourceUrl: string;
+}
+
+export interface HistoricTrackStop {
+  dateLabel: string;
+  lat: number;
+  lon: number;
+  title: LocalizedText;
+  note: LocalizedText;
+}
+
+export interface HistoricExpeditionTrack {
+  id: 'amundsen-1911' | 'scott-1911' | 'shackleton-endurance-1915';
+  colorHex: string;
+  leader: LocalizedText;
+  vesselOrBase: LocalizedText;
+  years: string;
+  summary: LocalizedText;
+  stops: HistoricTrackStop[];
+  sourceUrl: string;
+}
+
+export interface HistoricTrackRenderLayer {
+  id: string;
+  colorHex: string;
+  points: Array<{ lat: number; lon: number }>;
+  activeHead?: {
+    lat: number;
+    lon: number;
+    label: string;
+  };
+}
+
 export interface AtlasUrlState {
   mode: MapViewMode;
   units: UnitSystem;

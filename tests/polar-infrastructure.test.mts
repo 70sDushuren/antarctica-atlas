@@ -24,6 +24,12 @@ import {
   formatPolarWindSpeed,
   kmhToKnots
 } from '../src/lib/units-and-format.ts';
+import {
+  EXPEDITION_CORRIDORS,
+  FEATURED_HISTORIC_MONUMENTS,
+  HERITAGE_CHRONICLE_ACTS,
+  HISTORIC_EXPEDITION_TRACKS
+} from '../src/data/heritage-and-corridors.ts';
 import type { SubglacialBedmapGrid } from '../src/lib/types.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -172,5 +178,36 @@ describe('Polar Meteorology, Drake Sea-State & Locale Unit Formatting', () => {
     assert.match(formatPolarTemperature(-24.5, 'metric', 'pt'), /-24,5\s*°C/);
     assert.equal(formatPolarWindSpeed(18.52, 'nautical', 'en'), '10.0 kt');
     assert.equal(formatPolarLength(100, 'imperial', 'en', 0), '328 ft');
+  });
+});
+
+describe('Phase 3 Expedition Corridors, 4-Act Chronicle & Heroic Track Integrity', () => {
+  it('locks Corridor #1 (Ushuaia -> Drake -> Peninsula -> Weddell Sea) as default pinned route', () => {
+    const pinned = EXPEDITION_CORRIDORS.find((c) => c.isDefaultPinned);
+    assert.ok(pinned, 'Expected a default pinned expedition corridor');
+    assert.equal(pinned.id, 'peninsula-weddell');
+    assert.equal(EXPEDITION_CORRIDORS.length, 3);
+    assert.ok(pinned.waypoints.length >= 5);
+  });
+
+  it('provides 4 chronological exploration acts, 3 Heroic Age tracks, and 7 ATCM HSM sites', () => {
+    assert.equal(HERITAGE_CHRONICLE_ACTS.length, 4);
+    assert.deepEqual(
+      HERITAGE_CHRONICLE_ACTS.map((a) => a.actNumber),
+      [1, 2, 3, 4]
+    );
+    assert.equal(HISTORIC_EXPEDITION_TRACKS.length, 3);
+    assert.ok(FEATURED_HISTORIC_MONUMENTS.length >= 7);
+
+    // Verify Scott's 1911 track densifies cleanly across Ross Ice Shelf to 90°S without NaN
+    const scott = HISTORIC_EXPEDITION_TRACKS.find((t) => t.id === 'scott-1911');
+    assert.ok(scott);
+    const seg = densifyGreatCircle(
+      { lat: scott.stops[1].lat, lon: scott.stops[1].lon },
+      { lat: scott.stops[2].lat, lon: scott.stops[2].lon },
+      1.0
+    );
+    assert.ok(seg.length >= 6);
+    assert.ok(seg.every((p) => Number.isFinite(p.lat) && Number.isFinite(p.lon)));
   });
 });

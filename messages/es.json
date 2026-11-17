@@ -103,7 +103,28 @@
     "pinnedLabel": "Corredor de Expedición Predeterminado",
     "selectRoute": "Cambiar Corredor de Expedición",
     "waypointsCount": "{count} Puntos Clave de Ruta",
-    "safetyNotice": "Las operaciones siguen las Guías para Visitantes de la IAATO y el Protocolo Ambiental del Tratado Antártico."
+    "safetyNotice": "Las operaciones siguen las Guías para Visitantes de la IAATO y el Protocolo Ambiental del Tratado Antártico.",
+    "briefingTitle": "Informe Multidimensional del Corredor de Expedición",
+    "briefingSubtitle": "Síntesis integrada de meteorología por tramo, oleaje austral, luz diurna polar, geología SCAR y sitios históricos HSM",
+    "distanceLabel": "Distancia Total",
+    "durationLabel": "Ventana de Viaje",
+    "peakSwellLabel": "Ola Máx. del Corredor",
+    "meanDaylightLabel": "Luz Diurna Media",
+    "nearestWeather": "Base Cercana",
+    "linkedGeology": "Geología Asociada",
+    "linkedHeritage": "Sitio Protegido HSM"
+  },
+  "heritage": {
+    "chronicleTitle": "Crónica en Cuatro Actos de la Exploración y Gobernanza Antártica",
+    "chronicleSubtitle": "Desplácese por las cuatro eras históricas o haga clic en cualquier hito para sincronizar la cámara polar 3D/2D",
+    "autoSyncCamera": "Sincronizar Cámara al Desplazar",
+    "trackPlayerTitle": "Reproductor de Rutas de la Edad Heroica (1911 – 1916)",
+    "playTrack": "Reproducir Ruta",
+    "pauseTrack": "Pausar",
+    "resetTrack": "Reiniciar",
+    "compareDualRace": "Superponer Rutas Dobles Amundsen vs. Scott hacia los 90°S",
+    "hsmRegistryTitle": "Sitios y Monumentos Históricos Protegidos (ATCM HSM)",
+    "proposingParty": "País Proponente"
   },
   "status": {
     "loading": "Calibrando proyección polar EPSG:3031 y telemetría en tiempo real…",
@@ -115,6 +136,6 @@
   },
   "footer": {
     "sourcesTitle": "Fuentes Científicas Verificadas y Referencias Cartográficas",
-    "scaffoldReady": "Fase 2 Activa — Explorador Bedmap3, Laboratorio de Perfiles Transversales, Geología SCAR GeoMAP y Toponimia CGA"
+    "scaffoldReady": "Antarctica Atlas V1.0 Completo — Los 5 Módulos Polares y los 6 Idiomas Verificados"
   }
 }

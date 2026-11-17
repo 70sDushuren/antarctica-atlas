@@ -103,7 +103,28 @@
     "pinnedLabel": "預設置頂極地考察航線走廊",
     "selectRoute": "切換經典考察航線",
     "waypointsCount": "{count} 個關鍵航路節點",
-    "safetyNotice": "極地登陸與航行資訊遵循 IAATO 訪客準則與《南極條約》環境保護議定書。"
+    "safetyNotice": "極地登陸與航行資訊遵循 IAATO 訪客準則與《南極條約》環境保護議定書。",
+    "briefingTitle": "極地考察航線走廊多維綜合簡報器",
+    "briefingSubtitle": "跨模組即時聚合沿途分段天氣風寒、南大洋湧浪等級、極晝日照時間、火山露頭地質與 HSM 歷史遺蹟",
+    "distanceLabel": "走廊總航程",
+    "durationLabel": "建議天數",
+    "peakSwellLabel": "沿線峰值波高",
+    "meanDaylightLabel": "沿線平均日照",
+    "nearestWeather": "鄰近氣象實況",
+    "linkedGeology": "沿途地質奇觀",
+    "linkedHeritage": "關聯受保護遺蹟"
+  },
+  "heritage": {
+    "chronicleTitle": "四幕式南極探險史詩與《南極條約》和平共治長卷",
+    "chronicleSubtitle": "捲動瀏覽四大歷史紀元或點擊任一里程碑，驅動 3D/2D 極地地圖鏡頭同步飛躍時空座標",
+    "autoSyncCamera": "捲動自動同步鏡頭",
+    "trackPlayerTitle": "「英雄時代」傳奇探險航跡動態回放器（1911 – 1916）",
+    "playTrack": "動態回放航跡",
+    "pauseTrack": "暫停回放",
+    "resetTrack": "重設起點",
+    "compareDualRace": "同屏疊加阿蒙森 vs. 斯科特 1911 南極點競速雙軌線",
+    "hsmRegistryTitle": "《南極條約》官方認證歷史遺蹟與紀念物名錄（ATCM HSM）",
+    "proposingParty": "提案締約國"
   },
   "status": {
     "loading": "正在校準 EPSG:3031 南極極球面投影與即時遙測資料流……",
@@ -115,6 +136,6 @@
   },
   "footer": {
     "sourcesTitle": "權威科學資料源與極地測繪基準溯源",
-    "scaffoldReady": "Phase 2 已上線 —— Bedmap3 冰蓋剝離透視、兩點拉線橫截面實驗室、SCAR GeoMAP 地質專題與六語地名庫已啟用"
+    "scaffoldReady": "Antarctica Atlas V1.0 全模組交付就緒 —— 五大極地核心業務模組與六語國際化體系已通過完整驗收"
   }
 }

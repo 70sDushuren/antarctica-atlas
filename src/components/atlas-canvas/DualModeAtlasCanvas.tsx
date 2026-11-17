@@ -10,6 +10,7 @@ import type {
   AtlasUrlState,
   ExpeditionCorridor,
   HistoricMonument,
+  HistoricTrackRenderLayer,
   PolarBaseLayer,
   PolarGeologicalSite,
   PolarOutlineDataPack,
@@ -42,6 +43,7 @@ export interface DualModeAtlasCanvasProps {
     pointA: { lat: number; lon: number };
     pointB: { lat: number; lon: number };
   };
+  historicTrackLayers?: HistoricTrackRenderLayer[];
   isPickingTransect: boolean;
   onMapClickCoordinate?: (lat: number, lon: number) => void;
   onUpdateState: (patch: Partial<AtlasUrlState>) => void;
@@ -59,6 +61,7 @@ export function DualModeAtlasCanvas({
   geologicalSites,
   activeCorridor,
   transectEndpoints,
+  historicTrackLayers = [],
   isPickingTransect,
   onMapClickCoordinate,
   onUpdateState
@@ -194,6 +197,7 @@ export function DualModeAtlasCanvas({
             geologicalSites={geologicalSites}
             activeCorridor={activeCorridor}
             transectEndpoints={transectEndpoints}
+            historicTrackLayers={historicTrackLayers}
             isPickingTransect={isPickingTransect}
             onMapClickCoordinate={onMapClickCoordinate}
             onCameraChange={(patch) => onUpdateState(patch)}
@@ -219,6 +223,7 @@ export function DualModeAtlasCanvas({
             geologicalSites={geologicalSites}
             activeCorridor={activeCorridor}
             transectEndpoints={transectEndpoints}
+            historicTrackLayers={historicTrackLayers}
             isPickingTransect={isPickingTransect}
             onMapClickCoordinate={onMapClickCoordinate}
             onCameraChange={(patch) => onUpdateState(patch)}

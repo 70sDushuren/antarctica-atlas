@@ -13,12 +13,16 @@ import {
 import {
   EXPEDITION_CORRIDORS,
   FEATURED_HISTORIC_MONUMENTS,
+  HERITAGE_CHRONICLE_ACTS,
+  HISTORIC_EXPEDITION_TRACKS,
   SCIENTIFIC_DATA_SOURCES
 } from '@/data/heritage-and-corridors';
 import { POLAR_STATIONS } from '@/data/stations';
 import type {
+  ChronicleAct,
   ExpeditionCorridor,
   GazetteerEntry,
+  HistoricExpeditionTrack,
   HistoricMonument,
   MarineCorridorTelemetry,
   PolarGeologicalSite,
@@ -37,6 +41,8 @@ export interface PolarRepository {
   getExpeditionCorridors(): ExpeditionCorridor[];
   getDefaultCorridor(): ExpeditionCorridor;
   getHistoricMonuments(): HistoricMonument[];
+  getChronicleActs(): ChronicleAct[];
+  getHistoricTracks(): HistoricExpeditionTrack[];
   getGeologicalSites(): PolarGeologicalSite[];
   getMacroRegions(): PolarMacroRegion[];
   getGazetteerEntries(): GazetteerEntry[];
@@ -70,6 +76,14 @@ export const polarRepository: PolarRepository = {
 
   getHistoricMonuments() {
     return FEATURED_HISTORIC_MONUMENTS;
+  },
+
+  getChronicleActs() {
+    return HERITAGE_CHRONICLE_ACTS;
+  },
+
+  getHistoricTracks() {
+    return HISTORIC_EXPEDITION_TRACKS;
   },
 
   getGeologicalSites() {

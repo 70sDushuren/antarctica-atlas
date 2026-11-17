@@ -103,7 +103,28 @@
     "pinnedLabel": "Default Pinned Expedition Corridor",
     "selectRoute": "Switch Expedition Corridor",
     "waypointsCount": "{count} Key Waypoints",
-    "safetyNotice": "Field operations follow IAATO Visitor Guidelines and Antarctic Treaty environmental protocols."
+    "safetyNotice": "Field operations follow IAATO Visitor Guidelines and Antarctic Treaty environmental protocols.",
+    "briefingTitle": "Expedition Corridor Multi-Dimensional Briefing",
+    "briefingSubtitle": "Cross-module synthesis of live waypoint weather, Southern Ocean swell, daylight window, SCAR geology & ATCM heritage",
+    "distanceLabel": "Corridor Distance",
+    "durationLabel": "Voyage Window",
+    "peakSwellLabel": "Corridor Peak Wave",
+    "meanDaylightLabel": "Mean Polar Daylight",
+    "nearestWeather": "Nearest Weather Node",
+    "linkedGeology": "Geology & Cryosphere",
+    "linkedHeritage": "Protected ATCM HSM"
+  },
+  "heritage": {
+    "chronicleTitle": "Four-Act Antarctic Exploration & Peace Governance Chronicle",
+    "chronicleSubtitle": "Scroll through four historical eras or click any milestone to fly the 3D/2D polar camera across time",
+    "autoSyncCamera": "Scroll Camera Sync",
+    "trackPlayerTitle": "Heroic Age Expedition Track Playback (1911 – 1916)",
+    "playTrack": "Play Expedition",
+    "pauseTrack": "Pause",
+    "resetTrack": "Reset",
+    "compareDualRace": "Overlay Amundsen + Scott 90°S Dual Tracks",
+    "hsmRegistryTitle": "Protected Antarctic Treaty Historic Sites & Monuments (ATCM HSM)",
+    "proposingParty": "Treaty Proponent"
   },
   "status": {
     "loading": "Calibrating EPSG:3031 polar projection & telemetry feeds…",
@@ -115,6 +136,6 @@
   },
   "footer": {
     "sourcesTitle": "Verified Scientific Data & Cartographic Sources",
-    "scaffoldReady": "Phase 2 Live — Bedmap3 Ice-Peel Explorer, Interactive Cross-Section Lab, SCAR GeoMAP Outcrops & 6-Locale CGA Gazetteer Active"
+    "scaffoldReady": "Antarctica Atlas V1.0 Complete — All 5 Core Polar Modules & 6-Locale Internationalization Verified"
   }
 }

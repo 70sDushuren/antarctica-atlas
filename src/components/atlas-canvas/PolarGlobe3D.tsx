@@ -11,6 +11,7 @@ import {
 import type {
   ExpeditionCorridor,
   HistoricMonument,
+  HistoricTrackRenderLayer,
   PolarGeologicalSite,
   PolarOutlineDataPack,
   PolarStation,
@@ -39,6 +40,7 @@ export interface PolarGlobe3DProps {
     pointA: { lat: number; lon: number };
     pointB: { lat: number; lon: number };
   };
+  historicTrackLayers?: HistoricTrackRenderLayer[];
   isPickingTransect: boolean;
   onMapClickCoordinate?: (lat: number, lon: number) => void;
   onCameraChange: (patch: { centerLat?: number; centerLon?: number; zoom?: number }) => void;
@@ -167,6 +169,7 @@ export default function PolarGlobe3D({
   geologicalSites,
   activeCorridor,
   transectEndpoints,
+  historicTrackLayers = [],
   isPickingTransect,
   onMapClickCoordinate,
   onCameraChange,
@@ -454,6 +457,38 @@ export default function PolarGlobe3D({
       ctx.restore();
     }
 
+    // Phase 3 Heroic Age Historic Track Playback Layers
+    for (const layer of historicTrackLayers) {
+      if (layer.points.length > 1) {
+        ctx.save();
+        ctx.strokeStyle = layer.colorHex;
+        ctx.lineWidth = 2.6;
+        drawSpherePath(layer.points, false);
+        ctx.stroke();
+        ctx.restore();
+      }
+      if (layer.activeHead) {
+        const hp = projectOrtho(
+          layer.activeHead.lat,
+          layer.activeHead.lon,
+          camLat,
+          camLon,
+          radius,
+          cx,
+          cy
+        );
+        if (hp.cosC > 0) {
+          ctx.fillStyle = layer.colorHex;
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(hp.x, hp.y, 6.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+    }
+
     // Active Bedmap3 Cross-Section Transect Line (A -> B)
     if (transectArcPoints.length > 1) {
       ctx.save();
@@ -608,6 +643,7 @@ export default function PolarGlobe3D({
     corridorArcPoints,
     transectArcPoints,
     transectEndpoints,
+    historicTrackLayers,
     locale
   ]);
 

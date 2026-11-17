@@ -103,7 +103,28 @@
     "pinnedLabel": "預設揀定嘅經典南極探險航線",
     "selectRoute": "轉去睇另一條探險航線",
     "waypointsCount": "一共 {count} 個主要航點",
-    "safetyNotice": "落岸探險同埋行船資料全部跟足 IAATO 訪客指引同埋《南極條約》環保規矩。"
+    "safetyNotice": "落岸探險同埋行船資料全部跟足 IAATO 訪客指引同埋《南極條約》環保規矩。",
+    "briefingTitle": "極地探險航線一站式天氣・風浪・地質・古蹟全簡報",
+    "briefingSubtitle": "將呢條航線每一站而家嘅氣溫陣風、海面大浪、每日日照鐘數、活火山岩石同百年古蹟一次過拼埋畀你睇清",
+    "distanceLabel": "全程幾多海里",
+    "durationLabel": "預計行幾多日",
+    "peakSwellLabel": "沿路最大風浪",
+    "meanDaylightLabel": "平均每日日照",
+    "nearestWeather": "最近科考站天氣",
+    "linkedGeology": "順路睇到嘅地質奇觀",
+    "linkedHeritage": "順路探訪嘅法定古蹟"
+  },
+  "heritage": {
+    "chronicleTitle": "四幕式南極探險傳奇同《南極條約》和平守護長卷",
+    "chronicleSubtitle": "一路向下碌睇晒四個時代嘅南極故事，或者直接撳入面啲歷史事件等 3D/2D 地圖自動飛過去嗰度",
+    "autoSyncCamera": "碌頁面自動飛鏡頭",
+    "trackPlayerTitle": "「英雄時代」三大傳奇探險路線動態回放機（1911 – 1916）",
+    "playTrack": "開始播探險路線",
+    "pauseTrack": "暫停一下",
+    "resetTrack": "返去出發起點",
+    "compareDualRace": "同場畫出阿蒙森鬥斯科特 1911 衝刺南極點雙路線對比",
+    "hsmRegistryTitle": "《南極條約》法定保護歷史遺址同紀念碑名冊（ATCM HSM）",
+    "proposingParty": "申請保護國家"
   },
   "status": {
     "loading": "正喺度對齊緊 EPSG:3031 南極地圖座標同埋實時風浪數據……",
@@ -115,6 +136,6 @@
   },
   "footer": {
     "sourcesTitle": "官方科研數據來源同埋極地地圖基準",
-    "scaffoldReady": "Phase 2 已經全面開通 —— Bedmap3 揭冰透視、兩點拉線橫截面測繪儀、SCAR GeoMAP 火山化石專題同埋六語地名辭典全部就緒"
+    "scaffoldReady": "Antarctica Atlas V1.0 全部五大功能同六種語言版本已經整好晒 —— 隨時可以開始探索南極！"
   }
 }

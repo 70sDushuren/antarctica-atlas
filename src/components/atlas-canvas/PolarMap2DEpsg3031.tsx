@@ -18,6 +18,7 @@ import {
 import type {
   ExpeditionCorridor,
   HistoricMonument,
+  HistoricTrackRenderLayer,
   PolarBaseLayer,
   PolarGeologicalSite,
   PolarOutlineDataPack,
@@ -48,6 +49,7 @@ export interface PolarMap2DEpsg3031Props {
     pointA: { lat: number; lon: number };
     pointB: { lat: number; lon: number };
   };
+  historicTrackLayers?: HistoricTrackRenderLayer[];
   isPickingTransect: boolean;
   onMapClickCoordinate?: (lat: number, lon: number) => void;
   onCameraChange: (patch: { centerLat?: number; centerLon?: number; zoom?: number }) => void;
@@ -103,6 +105,7 @@ export default function PolarMap2DEpsg3031({
   geologicalSites,
   activeCorridor,
   transectEndpoints,
+  historicTrackLayers = [],
   isPickingTransect,
   onMapClickCoordinate,
   onCameraChange,
@@ -395,6 +398,32 @@ export default function PolarMap2DEpsg3031({
       }).addTo(group);
     }
 
+    // Phase 3 Heroic Age Historic Track Playback Layers
+    for (const layer of historicTrackLayers) {
+      if (layer.points.length > 1) {
+        L.polyline(
+          layer.points.map((p) => [clampPolarLat(p.lat), p.lon] as [number, number]),
+          {
+            color: layer.colorHex,
+            weight: 3,
+            opacity: 0.94,
+            interactive: false
+          }
+        ).addTo(group);
+      }
+      if (layer.activeHead) {
+        L.circleMarker([clampPolarLat(layer.activeHead.lat), layer.activeHead.lon], {
+          radius: 7.5,
+          color: '#ffffff',
+          weight: 2,
+          fillColor: layer.colorHex,
+          fillOpacity: 1
+        })
+          .bindTooltip(layer.activeHead.label, { direction: 'top' })
+          .addTo(group);
+      }
+    }
+
     // Active Bedmap3 Cross-Section Transect Line (A -> B)
     if (planarTransectLatLngs.length > 1) {
       L.polyline(planarTransectLatLngs, {
@@ -484,6 +513,7 @@ export default function PolarMap2DEpsg3031({
     densifiedCorridorLatLngs,
     planarTransectLatLngs,
     transectEndpoints,
+    historicTrackLayers,
     geologicalSites,
     monuments,
     stations,

@@ -103,7 +103,28 @@
     "pinnedLabel": "默认置顶极地考察航线走廊",
     "selectRoute": "切换经典考察航线",
     "waypointsCount": "{count} 个核心航路节点",
-    "safetyNotice": "极地登陆与航行参考遵循 IAATO 访客准则与《南极条约》环境保护议定书。"
+    "safetyNotice": "极地登陆与航行参考遵循 IAATO 访客准则与《南极条约》环境保护议定书。",
+    "briefingTitle": "极地考察航线走廊多维综合简报器",
+    "briefingSubtitle": "跨模块实时联动沿途分段天气风寒、南大洋涌浪等级、极昼日照窗口、火山露头地质与 HSM 历史遗址",
+    "distanceLabel": "走廊总航程",
+    "durationLabel": "建议周期",
+    "peakSwellLabel": "沿线峰值波高",
+    "meanDaylightLabel": "沿线平均日照",
+    "nearestWeather": "邻近气象实况",
+    "linkedGeology": "沿途地质奇观",
+    "linkedHeritage": "关联受保护遗迹"
+  },
+  "heritage": {
+    "chronicleTitle": "四幕式南极探险史诗与《南极条约》和平共治长卷",
+    "chronicleSubtitle": "滚动浏览四大历史纪元或点击任一里程碑，驱动 3D/2D 极地地图镜头同步飞跃时空坐标",
+    "autoSyncCamera": "滚动自动飞跃镜头",
+    "trackPlayerTitle": "“英雄时代”传奇探险航迹动态回放器（1911 – 1916）",
+    "playTrack": "动态回放航迹",
+    "pauseTrack": "暂停回放",
+    "resetTrack": "重置起点",
+    "compareDualRace": "同屏叠加阿蒙森 vs. 斯科特 1911 南极点竞速双轨线",
+    "hsmRegistryTitle": "《南极条约》官方认证历史遗迹与纪念物名录（ATCM HSM）",
+    "proposingParty": "提案缔约国"
   },
   "status": {
     "loading": "正在校准 EPSG:3031 南极极球面投影与实时遥测数据流……",
@@ -115,6 +136,6 @@
   },
   "footer": {
     "sourcesTitle": "权威科学数据源与极地测绘基准溯源",
-    "scaffoldReady": "Phase 2 已上线 —— Bedmap3 冰盖剥离透视、两点拉线横截面实验室、SCAR GeoMAP 地质专题与六语地名库已激活"
+    "scaffoldReady": "Antarctica Atlas V1.0 全模块交付就绪 —— 五大极地核心业务模块与六语本地化体系已通过完整验收"
   }
 }
