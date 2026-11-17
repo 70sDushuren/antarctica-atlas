@@ -6,7 +6,7 @@ export async function GET() {
     {
       status: 'ok',
       service: 'antarctica-atlas',
-      version: '0.1.0',
+      version: '1.0.0',
       architecture: 'option-a-serverless-edge',
       projection: 'EPSG:3031',
       supportedLocales: SUPPORTED_LOCALES,

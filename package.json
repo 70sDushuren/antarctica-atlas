@@ -1,6 +1,6 @@
 {
   "name": "antarctica-atlas",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Antarctica Atlas — Holistic Live Weather, Subglacial Geology & Exploration Heritage Digital Atlas (6 Locales: en, zh-CN, zh-TW, yue-Hant, pt, es)",
